@@ -58,15 +58,44 @@ def stop(child):
         child.wait(timeout=30)
 
 
+def reserve(group, policy, lease, report, output, wait_seconds):
+    started = time.monotonic()
+    while True:
+        with lease.locked():
+            verify(group, policy)
+            peers = merge(admission.reservations(other_builds(), group), lease.peers())
+            amount = available()
+            report['admission'] = dict(available_bytes=amount, reservations=peers,
+                                      required_bytes=admission.required_bytes(policy, peers))
+            report['admission_waited_seconds'] = time.monotonic() - started
+            if admission.eligible(amount, peers, policy):
+                save(lease.path, dict(cgroup=str(group), memory_max_bytes=policy['tree_memory_gib'] * GIB,
+                                     bounded=True, pid=os.getpid(), start_time=start_time(os.getpid())))
+                lease.held = True
+                return
+        if not wait_seconds:
+            raise MemoryError('full compiler budgets plus 128-GiB reserve do not fit')
+        remaining = wait_seconds - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError('compiler admission deadline expired without starting tools')
+        report['status'] = 'WAITING_FOR_ADMISSION'
+        save(output / 'execution.json', report)
+        time.sleep(min(5, remaining))
+
+
 def run(args):
     if not 1 <= args.timeout_seconds <= 86400:
         raise ValueError('resume deadline must be between one second and 24 hours')
+    wait_seconds = getattr(args, 'admission_wait_seconds', 0)
+    if not 0 <= wait_seconds <= min(7200, args.timeout_seconds):
+        raise ValueError('admission wait must be at most two hours within the resume deadline')
     profile = getattr(args, 'memory_profile', '104g-v1')
     policy = MEMORY_PROFILES[profile]
     group = current()
     verify(group, policy)
     args.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='ADMITTING', policy=policy, memory_profile=profile,
+                  admission_wait_seconds=wait_seconds,
                   script=identity(args.script), supervisor=identity(__file__),
                   cgroup=str(group), properties=properties(policy))
     lease = Lease(Path.home() / '.cache/spine-cycle-sim/compiler-reservations', group)
@@ -79,17 +108,7 @@ def run(args):
     started = time.monotonic()
     try:
         # Reserve the full tree before any compiler can be spawned.
-        with lease.locked():
-            verify(group, policy)
-            peers = merge(admission.reservations(other_builds(), group), lease.peers())
-            amount = available()
-            report['admission'] = dict(available_bytes=amount, reservations=peers,
-                                      required_bytes=admission.required_bytes(policy, peers))
-            if not admission.eligible(amount, peers, policy):
-                raise MemoryError('full compiler budgets plus 128-GiB reserve do not fit')
-            save(lease.path, dict(cgroup=str(group), memory_max_bytes=policy['tree_memory_gib'] * GIB,
-                                 bounded=True, pid=os.getpid(), start_time=start_time(os.getpid())))
-            lease.held = True
+        reserve(group, policy, lease, report, args.output, wait_seconds)
         with (args.output / 'build.log').open('x') as log:
             child = subprocess.Popen(['/bin/bash', str(args.script.resolve())],
                                      stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
@@ -129,6 +148,7 @@ def main():
     parser.add_argument('--script', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--timeout-seconds', type=int, default=86400)
+    parser.add_argument('--admission-wait-seconds', type=int, default=0)
     parser.add_argument('--memory-profile', choices=MEMORY_PROFILES, default='104g-v1')
     args = parser.parse_args()
     if args.print_properties:

@@ -58,10 +58,25 @@ substitute for the existing route, raw skew, correctness or paired-time gates.
 
 ## Replacement Status
 
-The replacement has not yet been admitted at this documentation checkpoint.
-It must use a fresh unit/invocation and the unchanged `320g-v1` supervisor:
+The first retained-link launch, `spine-cc-stream-link-retained-20261106-v1.service`
+invocation `cbf15a1dd9b64a039c91c4f65a716dc6`, was rejected before starting
+tools because another user's compiler had no finite cgroup memory budget.
+The host had about 477 GiB available; an unbounded peer is not an ARC or
+low-available-memory diagnosis. Its receipt is retained remotely at
+`/data/chuxiao/cc-stream-link-retained-20261106-v1/execution.json`.
+No link command was executed in the new HLS root.
+
+The shared supervisor now has an explicit `--admission-wait-seconds` option
+(default zero, maximum two hours within the existing total deadline).
+It records `WAITING_FOR_ADMISSION`, rechecks under the atomic lease lock,
+and holds no compiler lease or tool process while waiting. Unknown peers
+or insufficient full budgets are never admitted. Changed/missing containment
+fails immediately; a finite wait can expire without starting tools. Tests
+cover admission after a peer retires, both timeout causes and unchanged
+default rejection. This does not change the `320g-v1` resource policy:
 320/304-GiB max/high, zero task swap, atomic full-budget admission and a
 128-GiB live host reserve. No host cache-clearing or ZFS settings change is
-required. Fresh local followers must identify that exact successful build,
+required. A fresh launch/output is required. Local followers identify its
+exact successful build,
 then pass the AU correctness/replay gate before requesting the other seven
 CC pairs. The frozen formal result remains **16/24 pairs; eight CC missing**.
