@@ -17,9 +17,10 @@ not estimated or filled from an older image.
 | SU | 3.451350 | 6.558909 | 1.9004 | 0 | 1 |
 | WK | 12.632963 | 32.553868 | 2.5769 | 2 | 2 |
 | SO | 37.319110 | 220.937809 | 5.9202 | 0 | 1 |
+| PK | 5.227821 | 46.870413 | 8.9656 | 0 | 1 |
 | R19 | 10.381851 | 41.171681 | 3.9657 | 2 | 2 |
 
-All five pairs pass their final-state checks. PK, LJ and LJ08 are still
+All six pairs pass their final-state checks. LJ and LJ08 are still
 pending. This is a CC-only update, not completion of Figures 7--11.
 
 ## Measurement
