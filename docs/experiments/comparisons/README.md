@@ -21,6 +21,9 @@ they are not replacement inputs for that package.
 
 ## Workload and Measurement Background
 
+- [Affected-fraction FPGA crossover](affected_fraction_fpga/README.md): CPU-labelled
+  spread sweeps and resident hardware comparisons, separate from frozen figures.
+
 - [AskUbuntu paper-scale workload](askubuntu_paper_scale_workload_20260728.md)
 - [R19 source identity](r19_source_identity_20260729.md)
 - [Shared comparison workloads](shared_comparison_workloads_20260725.md),
