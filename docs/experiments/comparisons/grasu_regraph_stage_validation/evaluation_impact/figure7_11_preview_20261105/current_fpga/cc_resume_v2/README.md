@@ -2,15 +2,17 @@
 
 ## Current Status, November 6
 
-The 320-GiB build completed routing with setup/hold timing met at the
-150-MHz target. Packaging succeeded after adding two private Boost libraries.
-The successful image is preserved, but an agent-caused packaging retry deleted
-the original temporary bus-skew report. **No new CC performance sample is
-admitted.** A direct AU correctness diagnostic now passes state, work and
-clock checks under bounded ARC-aware admission; a separate fresh link is
-rebuilding complete route evidence from the same host, XOs and wiring.
-See the [diagnostic and current queues](#arc-admission-and-au-diagnostic)
-and the [recovery record](#route-packaging-and-evidence-recovery).
+Both links produced an image with ordinary setup/hold timing met at the
+150-MHz target, but neither retained the required raw bus-skew report.
+The fresh link ended November 6 at 15:29 CST: its post-build archival copy
+failed because `--save-temps` was present only on compilation, not linking.
+**This is an agent-caused retention bug, not a new hardware performance
+result. No new CC performance sample is admitted.**
+The [link-retention recovery](LINK_RETENTION.md) owns the fix, regression
+checks, immutable failure receipts and replacement launch record. It reuses
+the same host, XOs and wiring plus the retained synthesis cache. The earlier
+[AU diagnostic](#arc-admission-and-au-diagnostic) passed state, work and clock
+checks but does not bypass the missing-report gate.
 The dated records below are retained history, not current build status.
 
 The November 5 `spine-cc-stream-admit-resume-20261105-v1.service`
