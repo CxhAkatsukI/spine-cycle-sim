@@ -69,16 +69,20 @@ zero nonempty propagation rounds, so they do not demonstrate propagation speedup
 compact Flickr propagation case still loses (35.08 vs. 4.76 ms). The original
 PK loss and Flickr loss both remain evidence, not omitted outliers.
 
-The CC replacement passed final setup/hold timing and packaging, but an
-agent-caused packaging retry deleted its temporary raw bus-skew report.
-A separate [fresh link and gated follow-ups](current_fpga/cc_resume_v2/README.md#route-packaging-and-evidence-recovery)
-are rebuilding complete evidence from identical host/XO/config bytes.
+Two CC replacement links reached packaging but lost their temporary raw
+bus-skew evidence because the agent's scripts did not retain link outputs.
+The latest ended at 15:29 CST on November 6, not with an admitted image.
+The [corrected link and gated follow-ups](current_fpga/cc_resume_v2/LINK_RETENTION.md)
+preserve link temporaries and check the actual Makefile command before
+starting tools. The new attempt is queued behind an unbounded foreign
+compiler, with unchanged host/XO/config bytes and finite memory gates.
 No replacement CC performance sample has been admitted.
 The [bounded ARC-aware AU diagnostic](current_fpga/cc_resume_v2/README.md#arc-admission-and-au-diagnostic)
 now passes labels, graph, work and clock checks (4.54 ms host pack through
 checked final readback). It is explicitly correctness-only, not a new paired
 Fig. 7 point. The replacement local collector and seven-case matrix wait
-on the still-running fresh link; caches were not manually cleared.
+on the corrected link; caches were not manually cleared. A queued build
+or collector is not a completed experiment.
 The [build-resume record](current_fpga/cc_resume_v1/README.md) preserves the
 agent-caused guard interruption and corrected launch without rewriting the
 old logs. The [PK capacity diagnostic](fresh_simulator/portable_fig8/diagnostics/pk_capacity_v1/README.md)
