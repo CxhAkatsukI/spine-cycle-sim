@@ -1,8 +1,8 @@
 # Current FPGA Source Controls
 
-The [direct CC board run](cc_direct_board_v1/README.md) now supplies four
+The [direct CC board run](cc_direct_board_v1/README.md) now supplies five
 correctness-checked pairs using the existing streaming image. The remaining
-four are running or queued. Missing raw routing reports do not postpone these
+three are running or queued. Missing raw routing reports do not postpone these
 measurements; their static-timing documentation remains explicitly incomplete.
 The separate frozen checkpoint below is not silently rewritten.
 

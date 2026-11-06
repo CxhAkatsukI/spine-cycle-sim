@@ -11,7 +11,7 @@ Contributors and coding agents must follow [the repository working rules](AGENTS
 
 | Task | Entry point |
 | --- | --- |
-| Inspect the direct CC board run: four completed pairs, four still running or queued | [Direct CC measurements](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/cc_direct_board_v1/README.md) |
+| Inspect the direct CC board run: five completed pairs, three still running or queued | [Direct CC measurements](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/cc_direct_board_v1/README.md) |
 | Inspect the latest 16/24 resident FPGA pairs; CC remains pending | [Current FPGA checkpoint](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/resident_checkpoint_v3/README.md) |
 | Bundle or redraw G/R controls and Figures 7--11 with an explicit FPGA checkpoint | [Portable evaluation archive](docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/PORTABLE.md) |
 | Understand the code and review a change | [C++ code map](cpp/README.md) |
