@@ -1,0 +1,21 @@
+--- /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_partitioned_algorithms_smoke.cpp
++++ diagnostic-host/host.cpp
+@@ -1,6 +1,6 @@
+ #include "host_split.hpp"
+ #include "host_maintenance_backing.hpp"
+-#include "../../src/spine_paper_architecture_contract.hpp"
++#include "spine_paper_architecture_contract.hpp"
+ 
+ #include <algorithm>
+ #include <chrono>
+@@ -1112,6 +1112,10 @@
+             std::chrono::duration<double, std::milli>(
+                 setup_end - setup_start).count();
+         timing_.iterations++;
++        std::cout << "SPINE_HW_ROUND_TIMING round=" << timing_.iterations
++                  << " reader_ms=" << reader_ms
++                  << " compute_ms=" << compute_ms
++                  << " kernel_span_ms=" << kernel_span_ms << std::endl;
+         timing_.input_migration_ms += input_ms;
+         timing_.reader_ms += reader_ms;
+         timing_.compute_ms += compute_ms;

@@ -1,0 +1,54 @@
+{
+  "source_base_commit": "04c57abe575265c4f32c01063caafc073038ecd9",
+  "original_run_root": "/data/chuxiao/checks/fpga-cycle-validation-20261107",
+  "status": "PASS_LIMITED_SSSP_PILOT",
+  "actual_image_authority": "raw/board-dev-diagnostic/results.json and raw/board-holdout/results.json",
+  "inherited_profile_warning": "Base profile contains historical HLS/image anchors; these are not the measured image identity. Use the board receipts above.",
+  "plugins": [
+    {
+      "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/reader-transport-plugin/build/libspine_cycle.so",
+      "sha256": "04f36878d4ea03e93d75f2e6bf7890e3b010a1a0d6a72de3f544ea1a7767ab44",
+      "bytes": 3885712
+    },
+    {
+      "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/transport-plugin/build/libspine_cycle.so",
+      "sha256": "b23dc8d24844015180f9a229365740d77205ee3b39e8f7833068d042ee0a41bf",
+      "bytes": 3885712
+    }
+  ],
+  "diagnostic_host": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/diagnostic-host/weighted_sssp.host",
+    "sha256": "c6a6c882bb91428f3b84cf4565163ac65216d6357b3e9b70f08a64d03b2a6ade",
+    "bytes": 303448
+  },
+  "diagnostic_host_source": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/diagnostic-host/host.cpp",
+    "sha256": "50d62f5b03f3e8fc7f531e38b2b50f11bb0d55309d565c3e11b9e79bb80cfc75",
+    "bytes": 116548
+  },
+  "production_host_source": {
+    "path": "/data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_partitioned_algorithms_smoke.cpp",
+    "sha256": "8f227f9983354d7cca314ec71c581fd815376cc3c290f45f7c086ad12683b073",
+    "bytes": 116314
+  },
+  "compiler": "g++ (Debian 15.2.0-14) 15.2.0",
+  "simulator_build_command": "make -C cpp/sst BUILD_DIR=<fresh-dir> (default -O3 -DNDEBUG -flto, C++20)",
+  "host_build_receipt": "Diagnostic source and binary hash retained; original diagnostic compilation command was not saved.",
+  "hypotheses": [
+    {
+      "name": "baseline",
+      "scope": "development",
+      "path": "raw/sim-dev-batch/results.json"
+    },
+    {
+      "name": "all-port delay",
+      "scope": "failed development diagnostic; never used on holdout",
+      "path": "raw/sim-transport-development/results.json"
+    },
+    {
+      "name": "reader-only delay",
+      "scope": "frozen before holdout prediction/comparison",
+      "path": "raw/frozen-reader-transport/freeze.json"
+    }
+  ]
+}

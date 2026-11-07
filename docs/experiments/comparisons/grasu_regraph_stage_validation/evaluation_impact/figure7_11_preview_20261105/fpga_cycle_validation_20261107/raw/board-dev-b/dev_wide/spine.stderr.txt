@@ -1,0 +1,8 @@
+Usage: /data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host <xclbin> --persistent-update --dynamic-graph <native.graph> --batches <N>
+One pass; chronological floor(i*updates/N) batches; bootstrap once.
+Maintenance only, no propagation. Fixed carry layout; bootstrap L10.
+Logical batches use capacity-safe physical launches of <=8192 updates.
+batch_ns includes host preparation and input DMA; update_wall_ns ends at kernel completion.
+Input parsing, programming, status/graph readback, and oracle are outside the reported sum.
+Board execution requires ORIGINAL_R_LEASE_FD, XCL_DEVICE_INDEX, and SPINE_EXPECT_BDF.
+Setup-once source: /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_partitioned_algorithms_smoke.cpp

@@ -1,0 +1,2 @@
+PASS spine_vertical: cycles=3471230 backend_requests=58150 DRAM=58150 ACT=16528 row_hits=21507
+evidence: /data/chuxiao/checks/fpga-cycle-validation-20261107/sim-reader-transport-holdout/test_512x4

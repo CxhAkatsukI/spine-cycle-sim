@@ -1,0 +1,2 @@
+PASS spine_vertical: cycles=43410 backend_requests=3254 DRAM=3254 ACT=296 row_hits=2688
+evidence: /data/chuxiao/checks/fpga-cycle-validation-20261107/sim-zero-regression/dev_narrow

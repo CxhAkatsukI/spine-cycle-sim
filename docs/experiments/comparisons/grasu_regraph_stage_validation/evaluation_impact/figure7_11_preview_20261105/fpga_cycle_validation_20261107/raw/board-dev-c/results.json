@@ -1,0 +1,84 @@
+{
+  "status": "PARTIAL_RETAINED",
+  "plan": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/plan.json",
+    "sha256": "975d8f5f560c6f6cf907a272658bd024a6a2bcb6822d4afee55ca9109bf34635",
+    "bytes": 3036
+  },
+  "hardware": {
+    "spine_host": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+    "spine_image": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "gr_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+    "gr_image": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin"
+  },
+  "rows": [
+    {
+      "name": "dev_narrow",
+      "split": "development",
+      "width": 8,
+      "depth": 2,
+      "vertices": 256,
+      "initial_edges": 18,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/update.slice",
+      "status": "FAILED_RETAINED",
+      "error": "RuntimeError('spine failed (1): /data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-c/dev_narrow/spine.stderr.txt')"
+    },
+    {
+      "name": "dev_wide",
+      "split": "development",
+      "width": 256,
+      "depth": 3,
+      "vertices": 771,
+      "initial_edges": 770,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/update.slice",
+      "status": "FAILED_RETAINED",
+      "error": "RuntimeError('spine failed (1): /data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-c/dev_wide/spine.stderr.txt')"
+    }
+  ],
+  "repetitions": 1,
+  "boundary": "maintenance kernel event plus sum of reader/compute event spans; no DMA or host gaps",
+  "admission": {
+    "admitted": true,
+    "available_bytes": 89619917056,
+    "required_bytes": 51539607552,
+    "reservations": [],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-cycle-dev-c-20261107.service",
+      "limits": {
+        "memory.max": "17179869184",
+        "memory.high": "15032385536",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 88829825024,
+      "mem_free_bytes": 60564029440,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 74490699728,
+        "mru_evictable_data": 15282398208,
+        "mfu_evictable_data": 42829377024
+      },
+      "clean_evictable_bytes": 58111775232,
+      "discount_denominator": 2,
+      "effective_available_bytes": 89619917056,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    }
+  }
+}

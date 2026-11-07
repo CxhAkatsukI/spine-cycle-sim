@@ -1,0 +1,104 @@
+diff --git a/cpp/sst/online_memory_probe.cpp b/cpp/sst/online_memory_probe.cpp
+index d26b476f..96484805 100644
+--- a/cpp/sst/online_memory_probe.cpp
++++ b/cpp/sst/online_memory_probe.cpp
+@@ -2240,6 +2240,19 @@ class OnlineMemoryProbe final : public SST::Component {
+           workload_path_.c_str());
+     }
+     spine_axi_profile_ = spine_axi_profile_from_id(spine_axi_profile_id_);
++    // Transport delay is separate from DRAMSim3 device-command timing.
++    spine_axi_profile_.read_address_pipeline_cycles +=
++        params.find<std::uint64_t>("spine_axi_transport_read_cycles", 0);
++    const auto reader_transport = params.find<std::uint64_t>(
++        "spine_axi_reader_transport_read_cycles", 0);
++    if (reader_transport != 0) {
++      const auto inherited =
++          spine_axi_profile_.maintenance_read_address_pipeline_cycles == 0
++              ? spine_axi_profile_.read_address_pipeline_cycles
++              : spine_axi_profile_.maintenance_read_address_pipeline_cycles;
++      spine_axi_profile_.maintenance_read_address_pipeline_cycles =
++          inherited + reader_transport;
++    }
+     try {
+       active_memory_channels_ =
+           parse_active_memory_channels(active_memory_channels_text_, channels_);
+@@ -4155,6 +4168,11 @@ class OnlineMemoryProbe final : public SST::Component {
+       {"spine_axi_profile",
+        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
+        "hls_split_9c08763"},
++      {"spine_axi_transport_read_cycles",
++       "Additional request-to-HBM transport pipeline delay in data-clock cycles",
++       "0"},
++      {"spine_axi_reader_transport_read_cycles",
++       "Additional reader/maintenance AXI read transport cycles; compute ports unchanged", "0"},
+       {"spine_maintenance_architecture",
+        "Spine maintenance architecture: shared_engine_serial, "
+        "candidate10_one_pass, or candidate10_refactor31_segmented_exact",
+diff --git a/scripts/run_sst_spine_vertical.py b/scripts/run_sst_spine_vertical.py
+index aaa0c2a4..0192aaa1 100644
+--- a/scripts/run_sst_spine_vertical.py
++++ b/scripts/run_sst_spine_vertical.py
+@@ -1745,6 +1745,14 @@ def parse_args() -> argparse.Namespace:
+     parser.add_argument(
+         "--maintenance-scan-response-capacity", type=int, default=32
+     )
++    parser.add_argument(
++        "--axi-transport-read-cycles", type=int,
++        help="additional AXI transport delay, separate from DRAM command timing",
++    )
++    parser.add_argument(
++        "--axi-reader-transport-read-cycles", type=int,
++        help="additional reader/maintenance AXI read delay; compute ports unchanged",
++    )
+     parser.add_argument(
+         "--axi-profile",
+         choices=(
+@@ -1809,6 +1817,18 @@ def main() -> int:
+     if profile_range_task_active_gate <= 0:
+         raise SystemExit("profile range_task_active_gate must be positive")
+     profile_parameters = profile.get("parameters", {})
++    if args.axi_transport_read_cycles is None:
++        args.axi_transport_read_cycles = int(
++            profile_parameters.get("axi_transport_read_cycles", 0)
++        )
++    if args.axi_transport_read_cycles < 0:
++        raise SystemExit("axi_transport_read_cycles must be nonnegative")
++    if args.axi_reader_transport_read_cycles is None:
++        args.axi_reader_transport_read_cycles = int(
++            profile_parameters.get("axi_reader_transport_read_cycles", 0)
++        )
++    if args.axi_reader_transport_read_cycles < 0:
++        raise SystemExit("axi_reader_transport_read_cycles must be nonnegative")
+     profile_owner_scheduler_enabled = bool(
+         profile_parameters.get("owner_scheduler_enabled", False)
+     )
+@@ -2297,6 +2317,12 @@ def main() -> int:
+                 args.maintenance_scan_response_capacity
+             ),
+             "SPINE_SST_AXI_PROFILE": args.axi_profile,
++            "SPINE_SST_AXI_TRANSPORT_READ_CYCLES": str(
++                args.axi_transport_read_cycles
++            ),
++            "SPINE_SST_AXI_READER_TRANSPORT_READ_CYCLES": str(
++                args.axi_reader_transport_read_cycles
++            ),
+             "SPINE_SST_MAINTENANCE_ARCHITECTURE": (
+                 args.maintenance_architecture
+             ),
+diff --git a/sst/spine_vertical_slice.py b/sst/spine_vertical_slice.py
+index e0313e8a..19444dce 100644
+--- a/sst/spine_vertical_slice.py
++++ b/sst/spine_vertical_slice.py
+@@ -333,6 +333,12 @@ probe.addParams(
+         "spine_axi_profile": os.environ.get(
+             "SPINE_SST_AXI_PROFILE", "hls_split_9c08763"
+         ),
++        "spine_axi_transport_read_cycles": int(
++            os.environ.get("SPINE_SST_AXI_TRANSPORT_READ_CYCLES", "0")
++        ),
++        "spine_axi_reader_transport_read_cycles": int(
++            os.environ.get("SPINE_SST_AXI_READER_TRANSPORT_READ_CYCLES", "0")
++        ),
+         "spine_maintenance_architecture": os.environ.get(
+             "SPINE_SST_MAINTENANCE_ARCHITECTURE", "shared_engine_serial"
+         ),

@@ -333,6 +333,12 @@ probe.addParams(
         "spine_axi_profile": os.environ.get(
             "SPINE_SST_AXI_PROFILE", "hls_split_9c08763"
         ),
+        "spine_axi_transport_read_cycles": int(
+            os.environ.get("SPINE_SST_AXI_TRANSPORT_READ_CYCLES", "0")
+        ),
+        "spine_axi_reader_transport_read_cycles": int(
+            os.environ.get("SPINE_SST_AXI_READER_TRANSPORT_READ_CYCLES", "0")
+        ),
         "spine_maintenance_architecture": os.environ.get(
             "SPINE_SST_MAINTENANCE_ARCHITECTURE", "shared_engine_serial"
         ),

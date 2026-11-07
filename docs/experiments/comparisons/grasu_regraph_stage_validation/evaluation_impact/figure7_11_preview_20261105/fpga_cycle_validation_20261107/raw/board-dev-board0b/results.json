@@ -1,0 +1,470 @@
+{
+  "status": "COMPLETE",
+  "plan": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/plan.json",
+    "sha256": "975d8f5f560c6f6cf907a272658bd024a6a2bcb6822d4afee55ca9109bf34635",
+    "bytes": 3036
+  },
+  "hardware": {
+    "spine_host": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+    "spine_image": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "gr_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+    "gr_image": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin"
+  },
+  "rows": [
+    {
+      "name": "dev_narrow",
+      "split": "development",
+      "width": 8,
+      "depth": 2,
+      "vertices": 256,
+      "initial_edges": 18,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/update.slice",
+      "status": "MEASURED",
+      "command": [
+        "/usr/bin/taskset",
+        "-c",
+        "124,125",
+        "/usr/bin/env",
+        "-u",
+        "XCL_EMULATION_MODE",
+        "XCL_DEVICE_INDEX=0",
+        "SPINE_EXPECT_BDF=0000:82:00.1",
+        "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+        "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+        "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+        "--dynamic-graph",
+        "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt",
+        "--source",
+        "0"
+      ],
+      "stdout": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_narrow/spine.stdout.txt",
+        "sha256": "3b767f9ae98e133be7a70a576e1bd49d8c393159593d9ae675448f2a104907e6",
+        "bytes": 5548
+      },
+      "stderr": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_narrow/spine.stderr.txt",
+        "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+        "bytes": 25
+      },
+      "memory_guard": {
+        "profile": "zfs-arc-clean-half-background5-v1",
+        "admission": {
+          "profile": "zfs-arc-clean-half-background5-v1",
+          "mem_available_bytes": 86674808832,
+          "mem_free_bytes": 58397569024,
+          "arc": {
+            "c_min": 8440012672,
+            "size": 74360788264,
+            "mru_evictable_data": 15271498240,
+            "mfu_evictable_data": 42822021120
+          },
+          "clean_evictable_bytes": 58093519360,
+          "discount_denominator": 2,
+          "effective_available_bytes": 87444328704,
+          "pressure_avg10": {
+            "some": 0.0,
+            "full": 0.0
+          },
+          "pressure_ok": true,
+          "pressure_limits_avg10": {
+            "some": 10,
+            "full": 5
+          }
+        },
+        "status": "COMPLETED",
+        "child_started": true,
+        "prelaunch": {
+          "status": "ADMITTED",
+          "child_started": false,
+          "checks": 1,
+          "waited_seconds": 0,
+          "pressure_checks": 0,
+          "last_observation": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "mem_available_bytes": 86674808832,
+            "mem_free_bytes": 58397569024,
+            "arc": {
+              "c_min": 8440012672,
+              "size": 74360788264,
+              "mru_evictable_data": 15271498240,
+              "mfu_evictable_data": 42822021120
+            },
+            "clean_evictable_bytes": 58093519360,
+            "discount_denominator": 2,
+            "effective_available_bytes": 87444328704,
+            "pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "pressure_ok": true,
+            "pressure_limits_avg10": {
+              "some": 10,
+              "full": 5
+            }
+          }
+        },
+        "minimum_effective_available_bytes": 86378498816,
+        "maximum_pressure_avg10": {
+          "some": 0.0,
+          "full": 0.0
+        },
+        "checks": 5,
+        "last_observation": {
+          "profile": "zfs-arc-clean-half-background5-v1",
+          "mem_available_bytes": 86564990976,
+          "mem_free_bytes": 58284752896,
+          "arc": {
+            "c_min": 8440012672,
+            "size": 74421185680,
+            "mru_evictable_data": 15276479488,
+            "mfu_evictable_data": 42822021120
+          },
+          "clean_evictable_bytes": 58098500608,
+          "discount_denominator": 2,
+          "effective_available_bytes": 87334003200,
+          "pressure_avg10": {
+            "some": 0.0,
+            "full": 0.0
+          },
+          "pressure_ok": true,
+          "pressure_limits_avg10": {
+            "some": 10,
+            "full": 5
+          }
+        },
+        "pressure_grace_seconds": 10,
+        "maximum_consecutive_pressure_seconds": 0,
+        "pressured_checks": 0
+      },
+      "maximum_child_rss_kib_so_far": 2267700,
+      "timing": {
+        "algorithm": "weighted_sssp",
+        "logical_updates": "1",
+        "physical_updates": "1",
+        "maintenance_input_ms": "0.034331",
+        "maintenance_kernel_ms": "0.121324",
+        "maintenance_output_ms": "0.025231",
+        "maintenance_device_e2e_ms": "0.180886",
+        "maintenance_setup_inclusive_ms": "0.336161",
+        "iterations": "4",
+        "input_migration_ms": "0.430573",
+        "reader_ms": "1.2014",
+        "compute_ms": "1.38598",
+        "kernel_span_ms": "1.38598",
+        "output_migration_ms": "0.205868",
+        "device_e2e_ms": "2.02243",
+        "setup_inclusive_ms": "3.07584",
+        "host_dynamic_preparation_ms": "0",
+        "dynamic_device_e2e_ms": "2.20331",
+        "dynamic_kernel_ms": "1.50731",
+        "dynamic_setup_inclusive_ms": "3.412",
+        "timing_scope": "maintenance_plus_iterative_algorithm_excludes_static_graph_setup"
+      },
+      "clock_evidence": {
+        "record": {
+          "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_narrow/spine.clock.json",
+          "sha256": "87e437bc05021bc8003b6c699fc01c670b2fc5093a8fe4f9303bbd20a866f4e3",
+          "bytes": 811
+        },
+        "expected": {
+          "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+          "binary": {
+            "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+            "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+            "bytes": 58375377
+          },
+          "info": {
+            "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/spine.xclbin-info.txt",
+            "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+            "bytes": 30574
+          },
+          "tool": {
+            "path": "/opt/xilinx/xrt/bin/xclbinutil",
+            "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+            "bytes": 1294
+          }
+        }
+      },
+      "clock": {
+        "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+        "binary": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_narrow/spine.clock-raw.json",
+          "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    },
+    {
+      "name": "dev_wide",
+      "split": "development",
+      "width": 256,
+      "depth": 3,
+      "vertices": 771,
+      "initial_edges": 770,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/update.slice",
+      "status": "MEASURED",
+      "command": [
+        "/usr/bin/taskset",
+        "-c",
+        "124,125",
+        "/usr/bin/env",
+        "-u",
+        "XCL_EMULATION_MODE",
+        "XCL_DEVICE_INDEX=0",
+        "SPINE_EXPECT_BDF=0000:82:00.1",
+        "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+        "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+        "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+        "--dynamic-graph",
+        "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_wide/graph.txt",
+        "--source",
+        "0"
+      ],
+      "stdout": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_wide/spine.stdout.txt",
+        "sha256": "c6658eb2d0f1ed10cbc171ebe56544bf197975e26b42cf176b4c8bc2e655db18",
+        "bytes": 6615
+      },
+      "stderr": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_wide/spine.stderr.txt",
+        "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+        "bytes": 25
+      },
+      "memory_guard": {
+        "profile": "zfs-arc-clean-half-background5-v1",
+        "admission": {
+          "profile": "zfs-arc-clean-half-background5-v1",
+          "mem_available_bytes": 88881790976,
+          "mem_free_bytes": 60601458688,
+          "arc": {
+            "c_min": 8440012672,
+            "size": 74421273216,
+            "mru_evictable_data": 15276483072,
+            "mfu_evictable_data": 42822021120
+          },
+          "clean_evictable_bytes": 58098504192,
+          "discount_denominator": 2,
+          "effective_available_bytes": 89650710784,
+          "pressure_avg10": {
+            "some": 0.0,
+            "full": 0.0
+          },
+          "pressure_ok": true,
+          "pressure_limits_avg10": {
+            "some": 10,
+            "full": 5
+          }
+        },
+        "status": "COMPLETED",
+        "child_started": true,
+        "prelaunch": {
+          "status": "ADMITTED",
+          "child_started": false,
+          "checks": 1,
+          "waited_seconds": 0,
+          "pressure_checks": 0,
+          "last_observation": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "mem_available_bytes": 88881790976,
+            "mem_free_bytes": 60601458688,
+            "arc": {
+              "c_min": 8440012672,
+              "size": 74421273216,
+              "mru_evictable_data": 15276483072,
+              "mfu_evictable_data": 42822021120
+            },
+            "clean_evictable_bytes": 58098504192,
+            "discount_denominator": 2,
+            "effective_available_bytes": 89650710784,
+            "pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "pressure_ok": true,
+            "pressure_limits_avg10": {
+              "some": 10,
+              "full": 5
+            }
+          }
+        },
+        "minimum_effective_available_bytes": 88148334080,
+        "maximum_pressure_avg10": {
+          "some": 0.0,
+          "full": 0.0
+        },
+        "checks": 5,
+        "last_observation": {
+          "profile": "zfs-arc-clean-half-background5-v1",
+          "mem_available_bytes": 87381168128,
+          "mem_free_bytes": 59104608256,
+          "arc": {
+            "c_min": 8440012672,
+            "size": 74420421720,
+            "mru_evictable_data": 15265437696,
+            "mfu_evictable_data": 42822013952
+          },
+          "clean_evictable_bytes": 58087451648,
+          "discount_denominator": 2,
+          "effective_available_bytes": 88148334080,
+          "pressure_avg10": {
+            "some": 0.0,
+            "full": 0.0
+          },
+          "pressure_ok": true,
+          "pressure_limits_avg10": {
+            "some": 10,
+            "full": 5
+          }
+        },
+        "pressure_grace_seconds": 10,
+        "maximum_consecutive_pressure_seconds": 0,
+        "pressured_checks": 0
+      },
+      "maximum_child_rss_kib_so_far": 2267920,
+      "timing": {
+        "algorithm": "weighted_sssp",
+        "logical_updates": "1",
+        "physical_updates": "1",
+        "maintenance_input_ms": "0.033581",
+        "maintenance_kernel_ms": "0.116594",
+        "maintenance_output_ms": "0.022561",
+        "maintenance_device_e2e_ms": "0.172736",
+        "maintenance_setup_inclusive_ms": "0.282839",
+        "iterations": "5",
+        "input_migration_ms": "0.517066",
+        "reader_ms": "7.78496",
+        "compute_ms": "8.08862",
+        "kernel_span_ms": "8.08862",
+        "output_migration_ms": "0.251719",
+        "device_e2e_ms": "8.8574",
+        "setup_inclusive_ms": "10.2197",
+        "host_dynamic_preparation_ms": "0",
+        "dynamic_device_e2e_ms": "9.03014",
+        "dynamic_kernel_ms": "8.20521",
+        "dynamic_setup_inclusive_ms": "10.5025",
+        "timing_scope": "maintenance_plus_iterative_algorithm_excludes_static_graph_setup"
+      },
+      "clock_evidence": {
+        "record": {
+          "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_wide/spine.clock.json",
+          "sha256": "4a3a09a597e49f5fdcb9eac48810f12f423fa131227766d1b45b902cc4e4c4d5",
+          "bytes": 809
+        },
+        "expected": {
+          "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+          "binary": {
+            "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+            "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+            "bytes": 58375377
+          },
+          "info": {
+            "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/spine.xclbin-info.txt",
+            "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+            "bytes": 30574
+          },
+          "tool": {
+            "path": "/opt/xilinx/xrt/bin/xclbinutil",
+            "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+            "bytes": 1294
+          }
+        }
+      },
+      "clock": {
+        "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+        "binary": {
+          "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+          "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+          "bytes": 58375377
+        },
+        "driver_reported_mhz": [
+          150,
+          500,
+          450,
+          0
+        ],
+        "bdf": "0000:82:00.1",
+        "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+        "raw": {
+          "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-board0b/dev_wide/spine.clock-raw.json",
+          "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+          "bytes": 94
+        },
+        "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+      }
+    }
+  ],
+  "repetitions": 1,
+  "boundary": "maintenance kernel event plus sum of reader/compute event spans; no DMA or host gaps",
+  "board_index": 0,
+  "bdf": "0000:82:00.1",
+  "host_identity": {
+    "path": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+    "sha256": "0061ca145086c55d752503a7f2b9c9ae316b4a7f6108d404d423833dd6d2bdde",
+    "bytes": 4313456
+  },
+  "image_identity": {
+    "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+    "bytes": 58375377
+  },
+  "admission": {
+    "admitted": true,
+    "available_bytes": 85785822464,
+    "required_bytes": 51539607552,
+    "reservations": [],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/spine-cycle-dev-board0b-20261107.service",
+      "limits": {
+        "memory.max": "17179869184",
+        "memory.high": "15032385536",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 85018017792,
+      "mem_free_bytes": 56741089280,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 74360522992,
+        "mru_evictable_data": 15267438080,
+        "mfu_evictable_data": 42822028288
+      },
+      "clean_evictable_bytes": 58089466368,
+      "discount_denominator": 2,
+      "effective_available_bytes": 85785822464,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    }
+  }
+}

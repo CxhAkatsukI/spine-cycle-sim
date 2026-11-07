@@ -1746,6 +1746,14 @@ def parse_args() -> argparse.Namespace:
         "--maintenance-scan-response-capacity", type=int, default=32
     )
     parser.add_argument(
+        "--axi-transport-read-cycles", type=int,
+        help="additional AXI transport delay, separate from DRAM command timing",
+    )
+    parser.add_argument(
+        "--axi-reader-transport-read-cycles", type=int,
+        help="additional reader/maintenance AXI read delay; compute ports unchanged",
+    )
+    parser.add_argument(
         "--axi-profile",
         choices=(
             "hls_split_9c08763",
@@ -1809,6 +1817,18 @@ def main() -> int:
     if profile_range_task_active_gate <= 0:
         raise SystemExit("profile range_task_active_gate must be positive")
     profile_parameters = profile.get("parameters", {})
+    if args.axi_transport_read_cycles is None:
+        args.axi_transport_read_cycles = int(
+            profile_parameters.get("axi_transport_read_cycles", 0)
+        )
+    if args.axi_transport_read_cycles < 0:
+        raise SystemExit("axi_transport_read_cycles must be nonnegative")
+    if args.axi_reader_transport_read_cycles is None:
+        args.axi_reader_transport_read_cycles = int(
+            profile_parameters.get("axi_reader_transport_read_cycles", 0)
+        )
+    if args.axi_reader_transport_read_cycles < 0:
+        raise SystemExit("axi_reader_transport_read_cycles must be nonnegative")
     profile_owner_scheduler_enabled = bool(
         profile_parameters.get("owner_scheduler_enabled", False)
     )
@@ -2297,6 +2317,12 @@ def main() -> int:
                 args.maintenance_scan_response_capacity
             ),
             "SPINE_SST_AXI_PROFILE": args.axi_profile,
+            "SPINE_SST_AXI_TRANSPORT_READ_CYCLES": str(
+                args.axi_transport_read_cycles
+            ),
+            "SPINE_SST_AXI_READER_TRANSPORT_READ_CYCLES": str(
+                args.axi_reader_transport_read_cycles
+            ),
             "SPINE_SST_MAINTENANCE_ARCHITECTURE": (
                 args.maintenance_architecture
             ),

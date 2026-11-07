@@ -1,0 +1,74 @@
+{
+  "algorithm": "weighted_sssp",
+  "source": 0,
+  "initial_state": "CPU old-graph convergence",
+  "update": "insert absent edge 0->1 with weight 1",
+  "cases": [
+    {
+      "name": "dev_narrow",
+      "split": "development",
+      "width": 8,
+      "depth": 2,
+      "vertices": 256,
+      "initial_edges": 18,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_narrow/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_narrow/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_narrow/update.slice"
+    },
+    {
+      "name": "dev_wide",
+      "split": "development",
+      "width": 256,
+      "depth": 3,
+      "vertices": 771,
+      "initial_edges": 770,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_wide/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_wide/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_wide/update.slice"
+    },
+    {
+      "name": "test_32x3",
+      "split": "holdout",
+      "width": 32,
+      "depth": 3,
+      "vertices": 256,
+      "initial_edges": 98,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_32x3/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_32x3/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_32x3/update.slice"
+    },
+    {
+      "name": "test_64x5",
+      "split": "holdout",
+      "width": 64,
+      "depth": 5,
+      "vertices": 323,
+      "initial_edges": 322,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_64x5/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_64x5/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_64x5/update.slice"
+    },
+    {
+      "name": "test_128x2",
+      "split": "holdout",
+      "width": 128,
+      "depth": 2,
+      "vertices": 259,
+      "initial_edges": 258,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_128x2/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_128x2/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_128x2/update.slice"
+    },
+    {
+      "name": "test_512x4",
+      "split": "holdout",
+      "width": 512,
+      "depth": 4,
+      "vertices": 2051,
+      "initial_edges": 2050,
+      "graph": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_512x4/graph.txt",
+      "initial": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_512x4/initial.slice",
+      "update": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/test_512x4/update.slice"
+    }
+  ]
+}

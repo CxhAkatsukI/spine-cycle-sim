@@ -1,0 +1,44 @@
+{
+  "status": "FAILED_RETAINED",
+  "boundary": "maintenance kernel event plus per-round reader/compute event spans; excludes DMA and host gaps",
+  "holdout_cases": 0,
+  "holdout_max_abs_error_percent": null,
+  "all_rows": [
+    {
+      "case": "dev_narrow",
+      "split": "development",
+      "vertices": 256,
+      "edges": 18,
+      "rounds": 4,
+      "fpga_mhz": 150,
+      "fpga_cycles": 228411.0,
+      "simulator_cycles": 214676,
+      "processed_edges": 18,
+      "served_sources": 18,
+      "work_match": true,
+      "signed_error_percent": -6.013283073056902,
+      "abs_error_percent": 6.013283073056902,
+      "within_20": true,
+      "board_report": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-diagnostic/results.json",
+      "simulator_result": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-reader-transport-development/dev_narrow/result.json"
+    },
+    {
+      "case": "dev_wide",
+      "split": "development",
+      "vertices": 771,
+      "edges": 770,
+      "rounds": 5,
+      "fpga_mhz": 150,
+      "fpga_cycles": 1228524.0,
+      "simulator_cycles": 1391568,
+      "processed_edges": 770,
+      "served_sources": 770,
+      "work_match": true,
+      "signed_error_percent": 13.27153559881614,
+      "abs_error_percent": 13.27153559881614,
+      "within_20": true,
+      "board_report": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-diagnostic/results.json",
+      "simulator_result": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-reader-transport-development/dev_wide/result.json"
+    }
+  ]
+}

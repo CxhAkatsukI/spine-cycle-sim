@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "rows": [
+    {
+      "case": "dev_narrow",
+      "status": "EXACT_ALL_RESULT_FIELDS",
+      "fields": 527,
+      "baseline": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-dev-batch/dev_narrow/result.json",
+        "sha256": "4eed41d656414cc86a338a7c0284f202bc2f63a24f6f09a9fbe5363cd0624a71",
+        "bytes": 33793
+      },
+      "current": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-zero-regression/dev_narrow/result.json",
+        "sha256": "4eed41d656414cc86a338a7c0284f202bc2f63a24f6f09a9fbe5363cd0624a71",
+        "bytes": 33793
+      }
+    },
+    {
+      "case": "dev_wide",
+      "status": "EXACT_ALL_RESULT_FIELDS",
+      "fields": 527,
+      "baseline": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-dev-batch/dev_wide/result.json",
+        "sha256": "c374dd4ff75dfb026cf8ec88207b4c0ba12da88b838ab2f5acf9420928a4b979",
+        "bytes": 35201
+      },
+      "current": {
+        "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-zero-regression/dev_wide/result.json",
+        "sha256": "c374dd4ff75dfb026cf8ec88207b4c0ba12da88b838ab2f5acf9420928a4b979",
+        "bytes": 35201
+      }
+    }
+  ]
+}

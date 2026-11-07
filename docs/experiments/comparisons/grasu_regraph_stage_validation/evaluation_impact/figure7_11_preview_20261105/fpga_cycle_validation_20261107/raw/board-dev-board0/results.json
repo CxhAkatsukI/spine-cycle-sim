@@ -1,0 +1,29 @@
+{
+  "status": "RUNNING",
+  "plan": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/plan.json",
+    "sha256": "975d8f5f560c6f6cf907a272658bd024a6a2bcb6822d4afee55ca9109bf34635",
+    "bytes": 3036
+  },
+  "hardware": {
+    "spine_host": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+    "spine_image": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "gr_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+    "gr_image": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin"
+  },
+  "rows": [],
+  "repetitions": 1,
+  "boundary": "maintenance kernel event plus sum of reader/compute event spans; no DMA or host gaps",
+  "board_index": 0,
+  "bdf": "0000:82:00.1",
+  "host_identity": {
+    "path": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+    "sha256": "0061ca145086c55d752503a7f2b9c9ae316b4a7f6108d404d423833dd6d2bdde",
+    "bytes": 4313456
+  },
+  "image_identity": {
+    "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+    "bytes": 58375377
+  }
+}

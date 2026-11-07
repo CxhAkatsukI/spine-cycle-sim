@@ -1,0 +1,15 @@
+Using XCL_DEVICE_INDEX=1
+XRT build version: 2.18.179
+Build hash: 3ade2e671e5ab463400813fc2846c57edf82bb10
+Build date: 2024-11-05 13:57:47
+Git branch: 2024.2
+PID: 3792545
+UID: 2009
+[Sat Nov  7 04:18:17 2026 GMT]
+HOST: trifoliate
+EXE: /data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host
+[XRT] ERROR: Can't reach out to mgmt for xclbin downloading
+[XRT] ERROR: Is xclmgmt driver loaded? Or is MSD/MPD running?
+[XRT] ERROR: See dmesg log for details. err = -110
+[XRT] ERROR: failed to load xclbin: Connection timed out
+PARTITIONED_ALGORITHMS_FAIL failed to program split algorithm xclbin: -6

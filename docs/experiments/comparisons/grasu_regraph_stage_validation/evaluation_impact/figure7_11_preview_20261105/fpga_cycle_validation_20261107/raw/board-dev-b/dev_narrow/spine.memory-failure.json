@@ -1,0 +1,135 @@
+{
+  "status": "FAILED_RETAINED",
+  "error": "RuntimeError('spine failed (2): /data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-b/dev_narrow/spine.stderr.txt')",
+  "command": [
+    "/usr/bin/taskset",
+    "-c",
+    "124,125",
+    "/usr/bin/env",
+    "-u",
+    "XCL_EMULATION_MODE",
+    "XCL_DEVICE_INDEX=1",
+    "SPINE_EXPECT_BDF=0000:c1:00.1",
+    "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+    "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+    "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "--dynamic-graph",
+    "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/dev_narrow/graph.txt",
+    "--source",
+    "0"
+  ],
+  "memory_guard": {
+    "profile": "zfs-arc-clean-half-background5-v1",
+    "admission": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 88821911552,
+      "mem_free_bytes": 60559605760,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 74343463640,
+        "mru_evictable_data": 15273821184,
+        "mfu_evictable_data": 42830212608
+      },
+      "clean_evictable_bytes": 58104033792,
+      "discount_denominator": 2,
+      "effective_available_bytes": 89611622656,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    },
+    "status": "COMPLETED",
+    "child_started": true,
+    "prelaunch": {
+      "status": "ADMITTED",
+      "child_started": false,
+      "checks": 1,
+      "waited_seconds": 0,
+      "pressure_checks": 0,
+      "last_observation": {
+        "profile": "zfs-arc-clean-half-background5-v1",
+        "mem_available_bytes": 88821911552,
+        "mem_free_bytes": 60559605760,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 74343463640,
+          "mru_evictable_data": 15273821184,
+          "mfu_evictable_data": 42830212608
+        },
+        "clean_evictable_bytes": 58104033792,
+        "discount_denominator": 2,
+        "effective_available_bytes": 89611622656,
+        "pressure_avg10": {
+          "some": 0.0,
+          "full": 0.0
+        },
+        "pressure_ok": true,
+        "pressure_limits_avg10": {
+          "some": 10,
+          "full": 5
+        }
+      }
+    },
+    "minimum_effective_available_bytes": 89611573504,
+    "maximum_pressure_avg10": {
+      "some": 0.0,
+      "full": 0.0
+    },
+    "checks": 2,
+    "last_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 88821911552,
+      "mem_free_bytes": 60559605760,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 74344654424,
+        "mru_evictable_data": 15273722880,
+        "mfu_evictable_data": 42830212608
+      },
+      "clean_evictable_bytes": 58103935488,
+      "discount_denominator": 2,
+      "effective_available_bytes": 89611573504,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    },
+    "pressure_grace_seconds": 10,
+    "maximum_consecutive_pressure_seconds": 0,
+    "pressured_checks": 0
+  },
+  "cgroup_before": {
+    "memory.current": "21856256\n",
+    "memory.peak": "78307328\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=101\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=101\n"
+  },
+  "cgroup_after": {
+    "memory.current": "22413312\n",
+    "memory.peak": "78307328\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=101\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=101\n"
+  },
+  "logs": [
+    {
+      "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-b/dev_narrow/spine.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-b/dev_narrow/spine.stderr.txt",
+      "sha256": "a5082a1b76d6e43f77486c938afcbd1bf242d147c3681a8957f20b108a0f9e57",
+      "bytes": 773
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "status": "RUNNING",
+  "plan": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs/plan.json",
+    "sha256": "72c20eb5a2a123829a9cf57e51d6102a4c5523cd30c8b22ce743e13948cf0b94",
+    "bytes": 2910
+  },
+  "hardware": {
+    "spine_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+    "spine_image": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "gr_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+    "gr_image": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin"
+  },
+  "rows": [],
+  "repetitions": 1,
+  "boundary": "maintenance kernel event plus sum of reader/compute event spans; no DMA or host gaps"
+}

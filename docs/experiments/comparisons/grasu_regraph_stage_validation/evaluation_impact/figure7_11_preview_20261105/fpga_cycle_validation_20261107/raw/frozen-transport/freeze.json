@@ -1,0 +1,41 @@
+{
+  "method": "mean first-round (FPGA reader cycles - baseline reader cycles) / reader requests; rounded to nearest 10 cycles",
+  "calibration_scope": "development only; identical 380-request first-round work",
+  "transport_read_cycles": 100,
+  "estimates": [
+    {
+      "case": "dev_narrow",
+      "measured_reader_cycles": 44742.0,
+      "predicted_reader_cycles": 5916,
+      "reader_requests": 380,
+      "effective_added_cycles": 102.17368421052632
+    },
+    {
+      "case": "dev_wide",
+      "measured_reader_cycles": 41794.35,
+      "predicted_reader_cycles": 5916,
+      "reader_requests": 380,
+      "effective_added_cycles": 94.41671052631578
+    }
+  ],
+  "board": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/board-dev-diagnostic/results.json",
+    "sha256": "db5c94eed982bbc03ee5eb00123225d3d29e411373df2e5737bbba59944239fe",
+    "bytes": 17931
+  },
+  "simulation": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/sim-dev-batch/results.json",
+    "sha256": "06c296ddaa619c8d9ebafead0b6b6789ebba948f8080416a8a5e6e2d1eb46cc7",
+    "bytes": 5578
+  },
+  "base_profile": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+    "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d",
+    "bytes": 3980
+  },
+  "frozen_profile": {
+    "path": "/data/chuxiao/checks/fpga-cycle-validation-20261107/frozen-transport/profile.json",
+    "sha256": "e041bf2aaefdeb0dcb4b7dea2f80b9535d9bc9b0206d850f7329e750a0b29813",
+    "bytes": 4268
+  }
+}

@@ -1,5 +1,12 @@
 # Selected Evaluation Delivery
 
+**Additional cycle-validation pilot:** see the [November 7 SSSP study](fpga_cycle_validation_20261107/README.md)
+and [plot](fpga_cycle_validation_20261107/data/figures/fpga_cycle_validation.png).
+All four predeclared small synthetic holdouts are within 20% (maximum
+15.69%) for the matched device-event window. The separate zip includes
+inputs, frozen development calibration, raw evidence and code. This is
+not a replacement for the selected Figures 7--11 or their evidence limits.
+
 Updated November 6, 2026. This is the selected **Figures 7--11 plus G/R
 source-control delivery**, in the original handoff directory. The paper is
 unchanged. This update incorporates the eight completed CC board pairs;

@@ -1,0 +1,2 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt vertices=256 initial_edges=18 logical_updates=1 physical_updates=1 final_edges=19
+SPINE_DEVICE bdf=0000:c1:00.1

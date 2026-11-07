@@ -1,5 +1,12 @@
 # G/R Source Controls and Evaluation Plots
 
+**FPGA cycle-validation pilot:** the [November 7 SSSP supplement](fpga_cycle_validation_20261107/README.md)
+contains the [measured-versus-simulated plot](fpga_cycle_validation_20261107/data/figures/fpga_cycle_validation.png),
+six paired rows and a complete code/data zip. Its four predeclared holdouts
+have 4.23%--15.69% absolute error with one development-calibrated reader
+delay. This is small synthetic SSSP device-window evidence, not large-graph,
+all-algorithm or ten-stage calibration. Earlier figures remain unchanged.
+
 **Selected delivery:** [Figures 7--11 plus G/R controls](LATEST.md), with a
 single complete download, [24-row Fig. 7 CSV](fig7_complete.csv), all six
 PDF/PNG previews, Python plotting code and source receipts. The new archive

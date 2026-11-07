@@ -1,0 +1,4 @@
+# Keep raw receipts and exact unified patches byte-for-byte.
+raw/** -text -whitespace
+*.patch -text -whitespace
+data/*.csv -text whitespace=cr-at-eol

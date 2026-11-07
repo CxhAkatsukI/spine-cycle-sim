@@ -1,0 +1,2499 @@
+{
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "914ce62d905b67cfa82c72a352c9056839ba6cba10972572e63339323708523c",
+      "bytes": 150
+    },
+    {
+      "path": "README.md",
+      "sha256": "47e2f52ae9cdef574ba707c9253d3797b902e5924e9b3d8ab60d6565b337bf53",
+      "bytes": 9771
+    },
+    {
+      "path": "code/configs/architectures/spine_owner_fifo_sssp_hls_v1.json",
+      "sha256": "15a530d8626b8fab8e50ea37e571ae6bde9c51273baf734670741dcb55736f6d",
+      "bytes": 3980
+    },
+    {
+      "path": "code/cpp/sst/online_memory_probe.cpp",
+      "sha256": "5c6e2c60e11b056fe4745c2b2611f352d6bb17947086a6eabf3efe7c7d913f37",
+      "bytes": 566185
+    },
+    {
+      "path": "code/scripts/run_sst_spine_vertical.py",
+      "sha256": "379cf6b871edb69057fee9564b7a9bce304de68824bb68a08770483e4f9cace0",
+      "bytes": 120756
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/__init__.py",
+      "sha256": "826e285ea85abeef642dc7f790f67fcbe888c25e8bf3898912e1c03239bccbb9",
+      "bytes": 75
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/analysis.py",
+      "sha256": "63781fbd6a91e728755f3339fa91ca1420e92038614dd7ed7d8d57c8cd7d7c27",
+      "bytes": 5448
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/board.py",
+      "sha256": "d9467e7db4f73540e019edaad76869a241eb72d3b98d306536e7bced8ad519de",
+      "bytes": 4043
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/calibration.py",
+      "sha256": "18a808f541dcee66126c7fd12beab08ff9c3aa67d3c9564ab7f69eb500e66f5f",
+      "bytes": 3718
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/delivery.py",
+      "sha256": "f52d40a79dc0ffb55dd658b4cd160f2c3178e4755ac8d28b0f608e78a32d3cb5",
+      "bytes": 6623
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/inputs.py",
+      "sha256": "0cd63a94b658886c64ef53e41ea505dc246da7614d22874ea663249c090ce07b",
+      "bytes": 2195
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/render.py",
+      "sha256": "8e964dd1c3df27871d07b8eee4a1555a69c9b67756f4db479068a57a5778cd07",
+      "bytes": 3065
+    },
+    {
+      "path": "code/spine_cycle_sim/experiments/evaluation_impact/fpga_cycles/simulation.py",
+      "sha256": "34af8df9e2e721a944f1900ae649ecfeffeeb8e934a1ef354d80e4b3a091fcd1",
+      "bytes": 2752
+    },
+    {
+      "path": "code/sst/spine_vertical_slice.py",
+      "sha256": "8cd84904878fc10814b3b936a3f2aabca7a6b8a9c8cb0482f44de04e0e567ffd",
+      "bytes": 14998
+    },
+    {
+      "path": "code/tests/test_fpga_cycle_validation.py",
+      "sha256": "7d2e81c967aabdc182d4e3341e7252f98ea0f9b357d200048327167e4c25b700",
+      "bytes": 4170
+    },
+    {
+      "path": "data/cycles.csv",
+      "sha256": "c4af1e62d7dcc30d7b6ce5e5a29084954c418de0a94bdf746c56af62f19c2a4d",
+      "bytes": 1961
+    },
+    {
+      "path": "data/figures/fpga_cycle_validation.pdf",
+      "sha256": "a651ef191a3efb0b38a94ce805dfd620d54e12c09b74a8b638cad62e1ba2e158",
+      "bytes": 21278
+    },
+    {
+      "path": "data/figures/fpga_cycle_validation.png",
+      "sha256": "9ef3ee6beecf0e384eed0f67df4a100da1754ff7a6eddb907cc1955a705f11ec",
+      "bytes": 87975
+    },
+    {
+      "path": "data/summary.json",
+      "sha256": "415034b0ac086d7af58b7c7a9ee847d7aeee817c63e107580c0426642ab77e3a",
+      "bytes": 4226
+    },
+    {
+      "path": "diagnostic_host.patch",
+      "sha256": "d76c878b87be2549ca130395184033640bd6f4ecb5178430bcd0e90d08230847",
+      "bytes": 919
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "0cba23e0d1e2ad3490ee6858ce81284458a68269044cfb8fa72cd2e9596ba904",
+      "bytes": 2415
+    },
+    {
+      "path": "raw/analysis-reader-development/cycles.csv",
+      "sha256": "43c417b91010a6fc7d0d12a4563a344fc568a18e6c501fb06209819c604f96ec",
+      "bytes": 793
+    },
+    {
+      "path": "raw/analysis-reader-development/summary.json",
+      "sha256": "b156e0c6ad8d94920862ff7a90d0c1a925e2dd8ae858b68dd591bf228a913fd0",
+      "bytes": 1571
+    },
+    {
+      "path": "raw/analysis-reader-final/cycles.csv",
+      "sha256": "c4af1e62d7dcc30d7b6ce5e5a29084954c418de0a94bdf746c56af62f19c2a4d",
+      "bytes": 1961
+    },
+    {
+      "path": "raw/analysis-reader-final/figures/fpga_cycle_validation.pdf",
+      "sha256": "a651ef191a3efb0b38a94ce805dfd620d54e12c09b74a8b638cad62e1ba2e158",
+      "bytes": 21278
+    },
+    {
+      "path": "raw/analysis-reader-final/figures/fpga_cycle_validation.png",
+      "sha256": "9ef3ee6beecf0e384eed0f67df4a100da1754ff7a6eddb907cc1955a705f11ec",
+      "bytes": 87975
+    },
+    {
+      "path": "raw/analysis-reader-final/summary.json",
+      "sha256": "415034b0ac086d7af58b7c7a9ee847d7aeee817c63e107580c0426642ab77e3a",
+      "bytes": 4226
+    },
+    {
+      "path": "raw/board-dev/results.json",
+      "sha256": "d5320077fdba23c48a2645c9ed724b70c9159475b5866285962b1e4e420e4391",
+      "bytes": 885
+    },
+    {
+      "path": "raw/board-dev/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-dev-b/dev_narrow/spine.memory-failure.json",
+      "sha256": "b881c6360b9b711e8372d168f58aa5f4544022295e5ee6287e6fe73877cae032",
+      "bytes": 4361
+    },
+    {
+      "path": "raw/board-dev-b/dev_narrow/spine.stderr.txt",
+      "sha256": "a5082a1b76d6e43f77486c938afcbd1bf242d147c3681a8957f20b108a0f9e57",
+      "bytes": 773
+    },
+    {
+      "path": "raw/board-dev-b/dev_narrow/spine.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/board-dev-b/dev_wide/spine.memory-failure.json",
+      "sha256": "8abc82443cac4ac496677b602db9b6b245166e061f33ca726513a3a64f217448",
+      "bytes": 4353
+    },
+    {
+      "path": "raw/board-dev-b/dev_wide/spine.stderr.txt",
+      "sha256": "a5082a1b76d6e43f77486c938afcbd1bf242d147c3681a8957f20b108a0f9e57",
+      "bytes": 773
+    },
+    {
+      "path": "raw/board-dev-b/dev_wide/spine.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/board-dev-b/results.json",
+      "sha256": "95166d415c3fd804c20d345454c4367c7621aeb2f2cb9e94cfea6a7061f40ea9",
+      "bytes": 3371
+    },
+    {
+      "path": "raw/board-dev-b/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-dev-board0/results.json",
+      "sha256": "48e119ef2c07f962dc70680506f7cad8c440969095f964fd8a28c7e5e6a1a04e",
+      "bytes": 1463
+    },
+    {
+      "path": "raw/board-dev-board0/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_narrow/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_narrow/spine.clock.json",
+      "sha256": "87e437bc05021bc8003b6c699fc01c670b2fc5093a8fe4f9303bbd20a866f4e3",
+      "bytes": 811
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_narrow/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_narrow/spine.stdout.txt",
+      "sha256": "3b767f9ae98e133be7a70a576e1bd49d8c393159593d9ae675448f2a104907e6",
+      "bytes": 5548
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_wide/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_wide/spine.clock.json",
+      "sha256": "4a3a09a597e49f5fdcb9eac48810f12f423fa131227766d1b45b902cc4e4c4d5",
+      "bytes": 809
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_wide/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-dev-board0b/dev_wide/spine.stdout.txt",
+      "sha256": "c6658eb2d0f1ed10cbc171ebe56544bf197975e26b42cf176b4c8bc2e655db18",
+      "bytes": 6615
+    },
+    {
+      "path": "raw/board-dev-board0b/results.json",
+      "sha256": "ddce396f1967db04a1efbaa7ab71e4ad78f4aa8cd9c15e861c9810b306d9b150",
+      "bytes": 17959
+    },
+    {
+      "path": "raw/board-dev-board0b/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-dev-c/dev_narrow/spine.memory-failure.json",
+      "sha256": "6897f8fe326da06bbbf9a703deea5c8a38a695532a291cfc29f2a82751e5a735",
+      "bytes": 4392
+    },
+    {
+      "path": "raw/board-dev-c/dev_narrow/spine.stderr.txt",
+      "sha256": "a8f40b03cd6a8204575c7ae5e70fd4dd0ec40151c614e948a64d78274be3762b",
+      "bytes": 638
+    },
+    {
+      "path": "raw/board-dev-c/dev_narrow/spine.stdout.txt",
+      "sha256": "740afd28b93cc1426a9f49199dc1ed191eced40f222b0125c02853b398d91462",
+      "bytes": 228
+    },
+    {
+      "path": "raw/board-dev-c/dev_wide/spine.memory-failure.json",
+      "sha256": "5d762928ca75756249ed454429dd508a454df60bb3254394bffba0cd3079c01d",
+      "bytes": 4386
+    },
+    {
+      "path": "raw/board-dev-c/dev_wide/spine.stderr.txt",
+      "sha256": "d30a962c0eedafe1d721d67f86b61d2020c9b04c50e8af40a08eee48a2249195",
+      "bytes": 638
+    },
+    {
+      "path": "raw/board-dev-c/dev_wide/spine.stdout.txt",
+      "sha256": "88016686166b012ceb3d340072406537b06dce1475a738185b9ad4e066d74bac",
+      "bytes": 228
+    },
+    {
+      "path": "raw/board-dev-c/results.json",
+      "sha256": "d02853901a410d5718b831dc7edab6fe2a4c853ea1c9f22b474d9b4bc83e3542",
+      "bytes": 3434
+    },
+    {
+      "path": "raw/board-dev-c/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_narrow/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_narrow/spine.clock.json",
+      "sha256": "8b0f00a0e0db5589cecd510f5ef62ced8e062c2406a841faa313708785b6a078",
+      "bytes": 814
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_narrow/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_narrow/spine.stdout.txt",
+      "sha256": "8ff4679e9cdf94e41ec5ce85a1469ae2dba6d86b4f9dda0308d9839ca0fa198f",
+      "bytes": 5914
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_wide/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_wide/spine.clock.json",
+      "sha256": "ab58dc19058d89998696e0f5620019001c05e758bda5e008a6172e53c8cad453",
+      "bytes": 812
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_wide/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-dev-diagnostic/dev_wide/spine.stdout.txt",
+      "sha256": "5dee63987dd614a6cd917c7b34fd45ce86140b87520466ee4eaec9a073db23c3",
+      "bytes": 7066
+    },
+    {
+      "path": "raw/board-dev-diagnostic/results.json",
+      "sha256": "db5c94eed982bbc03ee5eb00123225d3d29e411373df2e5737bbba59944239fe",
+      "bytes": 17931
+    },
+    {
+      "path": "raw/board-dev-diagnostic/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-holdout/results.json",
+      "sha256": "1249ec5e784fd0c9fea81ac866be29657487753f4ac3e26cd936270ff959d78e",
+      "bytes": 33080
+    },
+    {
+      "path": "raw/board-holdout/spine.xclbin-info.txt",
+      "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+      "bytes": 30574
+    },
+    {
+      "path": "raw/board-holdout/test_128x2/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-holdout/test_128x2/spine.clock.json",
+      "sha256": "efcfa7d45c796ee7d965aabf764c3792469d7b606d321bef8f738a67578c7c57",
+      "bytes": 807
+    },
+    {
+      "path": "raw/board-holdout/test_128x2/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-holdout/test_128x2/spine.stdout.txt",
+      "sha256": "73cbf6bc3b6be40cb5277ffd91f08c505b979068675a133dd732ab67081bc35c",
+      "bytes": 5951
+    },
+    {
+      "path": "raw/board-holdout/test_32x3/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-holdout/test_32x3/spine.clock.json",
+      "sha256": "30a6055939bf2a7c8a8d1c934a590ffd588defebb87bf380a25e6920f1dffb9a",
+      "bytes": 806
+    },
+    {
+      "path": "raw/board-holdout/test_32x3/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-holdout/test_32x3/spine.stdout.txt",
+      "sha256": "e09fdb0e461f4f32edfd6beb45bc3ec850043328a81a26214c93f36d45db67a2",
+      "bytes": 7040
+    },
+    {
+      "path": "raw/board-holdout/test_512x4/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-holdout/test_512x4/spine.clock.json",
+      "sha256": "d55cf5e91230810dbdc6de2696c7d0f5d8bac72c972eb49b6a9ae929ae6a40e2",
+      "bytes": 807
+    },
+    {
+      "path": "raw/board-holdout/test_512x4/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-holdout/test_512x4/spine.stdout.txt",
+      "sha256": "22357bc120c546a6c23ba6e19611afa3892045a86c26ff7147b138be2e1b18f8",
+      "bytes": 8203
+    },
+    {
+      "path": "raw/board-holdout/test_64x5/spine.clock-raw.json",
+      "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+      "bytes": 94
+    },
+    {
+      "path": "raw/board-holdout/test_64x5/spine.clock.json",
+      "sha256": "48d78076ba960ccebaa196372f3e2609e19c21257ae4bc34cc465c23692148f4",
+      "bytes": 806
+    },
+    {
+      "path": "raw/board-holdout/test_64x5/spine.stderr.txt",
+      "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+      "bytes": 25
+    },
+    {
+      "path": "raw/board-holdout/test_64x5/spine.stdout.txt",
+      "sha256": "35434f9c313e156b4ca2a57dc300de5b22cab7101df0604bf76f4ebdc275a87b",
+      "bytes": 9275
+    },
+    {
+      "path": "raw/diagnostic-host/host.cpp",
+      "sha256": "50d62f5b03f3e8fc7f531e38b2b50f11bb0d55309d565c3e11b9e79bb80cfc75",
+      "bytes": 116548
+    },
+    {
+      "path": "raw/frozen-reader-transport/freeze.json",
+      "sha256": "481dd86c32297b0fef3c0d8f49845339bcdff912b6878d73fe2fdf8908f622d0",
+      "bytes": 1631
+    },
+    {
+      "path": "raw/frozen-reader-transport/profile.json",
+      "sha256": "346a6a05868d797920275c1d92d165769812d8d6a7c22e71a68ece5d5808065a",
+      "bytes": 4275
+    },
+    {
+      "path": "raw/frozen-transport/freeze.json",
+      "sha256": "2172f6124126398d83185b0108c6d0472beff68c684442d5f99ecb8a71a7f4b7",
+      "bytes": 1580
+    },
+    {
+      "path": "raw/frozen-transport/profile.json",
+      "sha256": "e041bf2aaefdeb0dcb4b7dea2f80b9535d9bc9b0206d850f7329e750a0b29813",
+      "bytes": 4268
+    },
+    {
+      "path": "raw/inputs/dev_narrow/graph.txt",
+      "sha256": "2feb48010dbb732d1da1620e45ca660b49d0d3882ebc3da6e2cfc22dce7bed22",
+      "bytes": 139
+    },
+    {
+      "path": "raw/inputs/dev_narrow/initial.slice",
+      "sha256": "18c037596e3ef2cb85120bd858c2d01332f5a8cfe6b4dbcbada6568a94de894c",
+      "bytes": 258
+    },
+    {
+      "path": "raw/inputs/dev_narrow/update.slice",
+      "sha256": "467987092f993cc10d19ee89209faa3237c4b68d5f08869a07a18796e892e899",
+      "bytes": 107
+    },
+    {
+      "path": "raw/inputs/dev_wide/graph.txt",
+      "sha256": "0184b4880ce585b63f97c1cf9c6c7b5450f97fdddb30640f461361eabbdbfa88",
+      "bytes": 6992
+    },
+    {
+      "path": "raw/inputs/dev_wide/initial.slice",
+      "sha256": "41d86c0a40d7db9a2fc316f4d6a41037fba93d5622e09a6cbb198503c6f0e071",
+      "bytes": 8612
+    },
+    {
+      "path": "raw/inputs/dev_wide/update.slice",
+      "sha256": "07dca07e8754c5bf4bfa199ea1560fa8331b19e87e029d815f06f8a1e6b28f97",
+      "bytes": 105
+    },
+    {
+      "path": "raw/inputs/plan.json",
+      "sha256": "72c20eb5a2a123829a9cf57e51d6102a4c5523cd30c8b22ce743e13948cf0b94",
+      "bytes": 2910
+    },
+    {
+      "path": "raw/inputs/test_128x2/graph.txt",
+      "sha256": "afbd7a5acbc1983d2a71eaf7063b47887a700498a36431e19e606a09cf8d47c6",
+      "bytes": 2128
+    },
+    {
+      "path": "raw/inputs/test_128x2/initial.slice",
+      "sha256": "20ee17d476f60501a80bfa4cbf06970573e7d6dfbbd26a723e1e757ced676e47",
+      "bytes": 2726
+    },
+    {
+      "path": "raw/inputs/test_128x2/update.slice",
+      "sha256": "bc8b55c6a0d52def50429e6e4be0d90a9dd6f82d2688d940dceef106d9f72e4c",
+      "bytes": 107
+    },
+    {
+      "path": "raw/inputs/test_32x3/graph.txt",
+      "sha256": "47e7103bab580592112af18064cad49e9ee927397b3ee6a96a3639a4b375f2f0",
+      "bytes": 755
+    },
+    {
+      "path": "raw/inputs/test_32x3/initial.slice",
+      "sha256": "c0399a566abb3b9e2f845d860d581db3fbfb058f66b998fc6260ae12b0fe8fb4",
+      "bytes": 1033
+    },
+    {
+      "path": "raw/inputs/test_32x3/update.slice",
+      "sha256": "d5aafb2cba86971c67cf37a371d921b8617a76ea33cac1acb25b3a1da3d578b3",
+      "bytes": 106
+    },
+    {
+      "path": "raw/inputs/test_512x4/graph.txt",
+      "sha256": "5d7cf809b1b13a003622d02e09267db02e98ea73b69e9b0bbe4d5cfcb7a27d13",
+      "bytes": 20872
+    },
+    {
+      "path": "raw/inputs/test_512x4/initial.slice",
+      "sha256": "4e87165a25102b57b6fabaa23a4d54dddd5e76ca1ad38b44f8d3e0d09d390b23",
+      "bytes": 25053
+    },
+    {
+      "path": "raw/inputs/test_512x4/update.slice",
+      "sha256": "9ebb83a461b779d73ff43813cdb5751f194ec8a3420dcc4d023924aa361a49bd",
+      "bytes": 108
+    },
+    {
+      "path": "raw/inputs/test_64x5/graph.txt",
+      "sha256": "dc86506204ebe033614bf806443d89f5406ff35977730a5b23b41f7bc07e262f",
+      "bytes": 2896
+    },
+    {
+      "path": "raw/inputs/test_64x5/initial.slice",
+      "sha256": "29e63fa43048e651981848f5736ee4197073610e905069d086c1195de71391d2",
+      "bytes": 3621
+    },
+    {
+      "path": "raw/inputs/test_64x5/update.slice",
+      "sha256": "7c07efe33d105a68021323de1a06593da6032b7810c9aa8533f861039e7ae0b2",
+      "bytes": 106
+    },
+    {
+      "path": "raw/inputs-sorted/dev_narrow/graph.txt",
+      "sha256": "23400858c7d2252c44aead9b5a7a441821e0f08be897aa22e168301f452694e9",
+      "bytes": 139
+    },
+    {
+      "path": "raw/inputs-sorted/dev_narrow/initial.slice",
+      "sha256": "b2e74793b023d94988faed155eda992847788dd7c630438be65f4acc7579d93f",
+      "bytes": 258
+    },
+    {
+      "path": "raw/inputs-sorted/dev_narrow/update.slice",
+      "sha256": "467987092f993cc10d19ee89209faa3237c4b68d5f08869a07a18796e892e899",
+      "bytes": 107
+    },
+    {
+      "path": "raw/inputs-sorted/dev_wide/graph.txt",
+      "sha256": "cc66c56effddac2169d10a89ecfb28571ee7a4176530a0f35e8a565d30497657",
+      "bytes": 6992
+    },
+    {
+      "path": "raw/inputs-sorted/dev_wide/initial.slice",
+      "sha256": "16eafda01ae7ed6cc56c8044866329e977799d4e341430e06f1f4b3e91e7e912",
+      "bytes": 8612
+    },
+    {
+      "path": "raw/inputs-sorted/dev_wide/update.slice",
+      "sha256": "07dca07e8754c5bf4bfa199ea1560fa8331b19e87e029d815f06f8a1e6b28f97",
+      "bytes": 105
+    },
+    {
+      "path": "raw/inputs-sorted/plan.json",
+      "sha256": "975d8f5f560c6f6cf907a272658bd024a6a2bcb6822d4afee55ca9109bf34635",
+      "bytes": 3036
+    },
+    {
+      "path": "raw/inputs-sorted/test_128x2/graph.txt",
+      "sha256": "06de20a970af01cf27766f1c550dc1ba756cde0a2728a5344e65d0f9bb7db835",
+      "bytes": 2128
+    },
+    {
+      "path": "raw/inputs-sorted/test_128x2/initial.slice",
+      "sha256": "513595b83732a87ea8a6fc215a378957323c9c4ba2ccf08000aa5470346fedb6",
+      "bytes": 2726
+    },
+    {
+      "path": "raw/inputs-sorted/test_128x2/update.slice",
+      "sha256": "bc8b55c6a0d52def50429e6e4be0d90a9dd6f82d2688d940dceef106d9f72e4c",
+      "bytes": 107
+    },
+    {
+      "path": "raw/inputs-sorted/test_32x3/graph.txt",
+      "sha256": "aefc35fcdc406dc6ba4b271fdd2cd992268b4df83b8a807fafbc85fefedc451b",
+      "bytes": 755
+    },
+    {
+      "path": "raw/inputs-sorted/test_32x3/initial.slice",
+      "sha256": "335a60447d0f2919cd5922cf2f5b38c49f292001893168e3e3d08aba2b7ab8a6",
+      "bytes": 1033
+    },
+    {
+      "path": "raw/inputs-sorted/test_32x3/update.slice",
+      "sha256": "d5aafb2cba86971c67cf37a371d921b8617a76ea33cac1acb25b3a1da3d578b3",
+      "bytes": 106
+    },
+    {
+      "path": "raw/inputs-sorted/test_512x4/graph.txt",
+      "sha256": "b641c6643ee706f5f45ad3fa21aa8d7be634b76e8fac4dddff6e3349a7ff18e3",
+      "bytes": 20872
+    },
+    {
+      "path": "raw/inputs-sorted/test_512x4/initial.slice",
+      "sha256": "ff022fc9f31b450bf017f5cd639d21c63f64277795d6636574afc82e29103c57",
+      "bytes": 25053
+    },
+    {
+      "path": "raw/inputs-sorted/test_512x4/update.slice",
+      "sha256": "9ebb83a461b779d73ff43813cdb5751f194ec8a3420dcc4d023924aa361a49bd",
+      "bytes": 108
+    },
+    {
+      "path": "raw/inputs-sorted/test_64x5/graph.txt",
+      "sha256": "ff7414c163381e46cc02557921be46d314a4f932e2e073eb61e97a760a8eef82",
+      "bytes": 2896
+    },
+    {
+      "path": "raw/inputs-sorted/test_64x5/initial.slice",
+      "sha256": "72bc59ec920a3c39231910bd1c4f80b824bccfb9d0db22967ef5b4d40e9f82dd",
+      "bytes": 3621
+    },
+    {
+      "path": "raw/inputs-sorted/test_64x5/update.slice",
+      "sha256": "7c07efe33d105a68021323de1a06593da6032b7810c9aa8533f861039e7ae0b2",
+      "bytes": 106
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel0/dramsim3.json",
+      "sha256": "6b5f86112e1d4e323cb457d8280856b2fbefa6cf3bebffa257a0bccd87a342ff",
+      "bytes": 2197
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel0/dramsim3.txt",
+      "sha256": "f60e6cc22f5827bb82a0511595690c8f9c2ba8e0ab1422ae24493b995cf6cc50",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel16/dramsim3.json",
+      "sha256": "539bfb31a7f3e182296471555ade3402aaa4393e9a74b992d2c47bc97450834c",
+      "bytes": 2090
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel16/dramsim3.txt",
+      "sha256": "22040d4932ebfc6d02c21b5a749ae370e5b72b0be5368907a15f92cd1c4cea4a",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel17/dramsim3.json",
+      "sha256": "c472825666d8888e01009ade343466add2882cd45672075ec1d3f9cbf995cc5f",
+      "bytes": 2104
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel17/dramsim3.txt",
+      "sha256": "f16d077586c229d73949d442e6291e806e93efce77adeaa99d25fce74f2d7659",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel18/dramsim3.json",
+      "sha256": "5a529fb9dd2fdb0692cab3d91298007f6a97c7e62fe43b09a5c4fe116b9e363b",
+      "bytes": 1796
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel18/dramsim3.txt",
+      "sha256": "b319bc80957f844458ffe82eea591dc0ce9d5f00a2c6542fce62ee658c509c2c",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel19/dramsim3.json",
+      "sha256": "60557968e9c9a93161bcd1653eb22e4f03661be228b3405032600b9078c94709",
+      "bytes": 1919
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel19/dramsim3.txt",
+      "sha256": "908ef09f5b954aad7e60d1b0e916c82c7d031596171faf500bb0bf8d6821fed2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel20/dramsim3.json",
+      "sha256": "f3967c8377737bb5ec36ea4c2f69ef18b2b9d6b8980777d2a7821d33f6566bd2",
+      "bytes": 3309
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel20/dramsim3.txt",
+      "sha256": "795030c72a1bedcb64d4925d875e11f953709ce089e99cd9dba64ae326b1add2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel21/dramsim3.json",
+      "sha256": "55436c8a512e4c5a478c02060c7ce1846eae354a4b909c7e11521731f3911c62",
+      "bytes": 3079
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel21/dramsim3.txt",
+      "sha256": "832e0277f3a456d612cb3110cbdcc583c91492d3b37fc3b1157e9bd18c30026b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel22/dramsim3.json",
+      "sha256": "23b496cdd18a43e94bfb9c2eeadc6fd87c461ae52e2ec23f37072a62288793cb",
+      "bytes": 2346
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/dram/channel22/dramsim3.txt",
+      "sha256": "acc05d93ea392373ef1d63d246efe56c3d90861d083d0186b4fff923d2736f41",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/result.json",
+      "sha256": "4eed41d656414cc86a338a7c0284f202bc2f63a24f6f09a9fbe5363cd0624a71",
+      "bytes": 33793
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/sst.log",
+      "sha256": "e9a891fa02f6648140bb1bd0f7d51ffedddd10bcbba80a5efffbca603458812f",
+      "bytes": 354
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_narrow/summary.json",
+      "sha256": "e8710aa952ea0b99c465507a92752d6b6407f983f6fef79f29d0548a93f4709a",
+      "bytes": 42716
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel0/dramsim3.json",
+      "sha256": "59278956eb3ce5d0ec28fb7dadc972e21970999076473b05e5a7e89da6e559dd",
+      "bytes": 3177
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel0/dramsim3.txt",
+      "sha256": "694e823a6c8f8685d93f1bd0e940644870bc3a674e845be534fa0c633ee6431e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel0/dramsim3epoch.json",
+      "sha256": "bbb81b4015187385d3d67fcee572756ef3c11e9e1cdd6816f241c0d8c6c8dd16",
+      "bytes": 7158
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel16/dramsim3.json",
+      "sha256": "b032d9144a9011a2cf075e565be8f5ee0b8a9b4480d4a9d066e919ab251f3815",
+      "bytes": 2622
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel16/dramsim3.txt",
+      "sha256": "5a7e37fc60d2174a974e89cab04bdad3d49814723e3df7425358481f114654bb",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel16/dramsim3epoch.json",
+      "sha256": "edd7cd5e3d6ff912c7121ee9542cd8c32a18d10fe509b59fbfdf378286ffeb26",
+      "bytes": 7047
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel17/dramsim3.json",
+      "sha256": "931488ea71c73951cdbccd5f98affa8464da42b4e79c2cd2ddecd0fa1755882d",
+      "bytes": 3739
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel17/dramsim3.txt",
+      "sha256": "d2b70a14106fb0c6f94bd9fa1257c4c9c4051d528a9fbb97bc48d0b7f578f8cd",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel17/dramsim3epoch.json",
+      "sha256": "99cbe355e4a7e9628049450663f696f58b958e66eae8bf8f8f2451651d3f2448",
+      "bytes": 7124
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel18/dramsim3.json",
+      "sha256": "81a8e828ff6da9cb2351216395b4b81b516a39d05d09484ca7cd76b037303489",
+      "bytes": 1803
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel18/dramsim3.txt",
+      "sha256": "2bd33dfd9dd1c1ba86b058270ffb615d5cbcd1eee99d982bd22f67245c2bfc75",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel18/dramsim3epoch.json",
+      "sha256": "08be7917f166f66fb9a56bfa81ef873d2af53d4751ca18896a54291e1792d980",
+      "bytes": 6873
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel19/dramsim3.json",
+      "sha256": "0aa0b18fca3a5e9f8b40c7db4b1ee59fef586c3f6b55f25f2cb22c264eb53f0e",
+      "bytes": 2888
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel19/dramsim3.txt",
+      "sha256": "b059859b87205c3e55551dde8a8a1bc7644552d9f0d374e44e8ce97bf20cbb12",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel19/dramsim3epoch.json",
+      "sha256": "ae487ee64eb1b96ea3f41250de70b19237cbf4f0e17e3d3f8ee9921037577a7b",
+      "bytes": 7098
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel20/dramsim3.json",
+      "sha256": "04acdbe99d6fdc43c605c6af2cd127f66ef0cfeae20d5bdb34598474c1b1ee57",
+      "bytes": 4407
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel20/dramsim3.txt",
+      "sha256": "ff008ddcab143b1600376e0e1197bb72a33be54a3a97f93ce048ec3062790c04",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel20/dramsim3epoch.json",
+      "sha256": "54241a73931aff83f88be9472cc30812bd12fbdb6ea0fe08adf57463e8f2f565",
+      "bytes": 7184
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel21/dramsim3.json",
+      "sha256": "44ec025f802cb3c747829ed8fe8ba74b6fde332b65fd6311779bf370c129be79",
+      "bytes": 3311
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel21/dramsim3.txt",
+      "sha256": "96da2cfbd1fa5270b7740d758c8f6906009c975f0adc3e3f9c1e16fe3eb33df2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel21/dramsim3epoch.json",
+      "sha256": "756752f9f2bef57e4986ab54fe63ac5f0449117bf2d356f0102996f1cff74cb6",
+      "bytes": 7022
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel22/dramsim3.json",
+      "sha256": "9c5e3a9f3a8555172a12967876e5990b69d3d24cd6c0a4dc189b3293c7045fe4",
+      "bytes": 4178
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel22/dramsim3.txt",
+      "sha256": "aaee2d87cc44a1d98b2ac9b31e033d5a7c681b79aaeffa2c59248e35079fd79e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/dram/channel22/dramsim3epoch.json",
+      "sha256": "de55ba52d11f03be047ae6c9f02541644fd8c322ae5b669f2670ee67c2cc0cd7",
+      "bytes": 7152
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/result.json",
+      "sha256": "c374dd4ff75dfb026cf8ec88207b4c0ba12da88b838ab2f5acf9420928a4b979",
+      "bytes": 35201
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/sst.log",
+      "sha256": "18d4b14abef6260dd8f3e8f8d6273452073af89178cd612c1b526865e748208b",
+      "bytes": 353
+    },
+    {
+      "path": "raw/sim-dev-batch/dev_wide/summary.json",
+      "sha256": "f779d4116b1260c10fb91a641b9d67f8a6f98b68fbd8fc4deb5d861b3cdc9970",
+      "bytes": 48928
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_narrow.resources.json",
+      "sha256": "921e0cab266ef8545e73b09afd5d2e8377cd7a92c21c57aa2e19e6a26ee442df",
+      "bytes": 1484
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_narrow.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_narrow.stdout.txt",
+      "sha256": "0f3a6ab04636c89875a097872ddd020d4f561e030a626ec3035399956db33ced",
+      "bytes": 175
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_wide.resources.json",
+      "sha256": "9b1dccf313f65ba758fdce487f6135fbc26952f190cf08095886ebb427d7b58a",
+      "bytes": 1473
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_wide.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-dev-batch/raw/dev_wide.stdout.txt",
+      "sha256": "4de60c2d08c4e401b5b8aaee1dc341b1db21fecf12bc91c753188d441fdabf70",
+      "bytes": 178
+    },
+    {
+      "path": "raw/sim-dev-batch/results.json",
+      "sha256": "06c296ddaa619c8d9ebafead0b6b6789ebba948f8080416a8a5e6e2d1eb46cc7",
+      "bytes": 5578
+    },
+    {
+      "path": "raw/sim-dev-narrow/sst.log",
+      "sha256": "be2d4e6d3224225394ae4ef17687c912224028e9a9943139289d23d7719930fb",
+      "bytes": 514
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel0/dramsim3.json",
+      "sha256": "6b5f86112e1d4e323cb457d8280856b2fbefa6cf3bebffa257a0bccd87a342ff",
+      "bytes": 2197
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel0/dramsim3.txt",
+      "sha256": "f60e6cc22f5827bb82a0511595690c8f9c2ba8e0ab1422ae24493b995cf6cc50",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel16/dramsim3.json",
+      "sha256": "539bfb31a7f3e182296471555ade3402aaa4393e9a74b992d2c47bc97450834c",
+      "bytes": 2090
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel16/dramsim3.txt",
+      "sha256": "22040d4932ebfc6d02c21b5a749ae370e5b72b0be5368907a15f92cd1c4cea4a",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel17/dramsim3.json",
+      "sha256": "c472825666d8888e01009ade343466add2882cd45672075ec1d3f9cbf995cc5f",
+      "bytes": 2104
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel17/dramsim3.txt",
+      "sha256": "f16d077586c229d73949d442e6291e806e93efce77adeaa99d25fce74f2d7659",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel18/dramsim3.json",
+      "sha256": "5a529fb9dd2fdb0692cab3d91298007f6a97c7e62fe43b09a5c4fe116b9e363b",
+      "bytes": 1796
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel18/dramsim3.txt",
+      "sha256": "b319bc80957f844458ffe82eea591dc0ce9d5f00a2c6542fce62ee658c509c2c",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel19/dramsim3.json",
+      "sha256": "60557968e9c9a93161bcd1653eb22e4f03661be228b3405032600b9078c94709",
+      "bytes": 1919
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel19/dramsim3.txt",
+      "sha256": "908ef09f5b954aad7e60d1b0e916c82c7d031596171faf500bb0bf8d6821fed2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel20/dramsim3.json",
+      "sha256": "f3967c8377737bb5ec36ea4c2f69ef18b2b9d6b8980777d2a7821d33f6566bd2",
+      "bytes": 3309
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel20/dramsim3.txt",
+      "sha256": "795030c72a1bedcb64d4925d875e11f953709ce089e99cd9dba64ae326b1add2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel21/dramsim3.json",
+      "sha256": "55436c8a512e4c5a478c02060c7ce1846eae354a4b909c7e11521731f3911c62",
+      "bytes": 3079
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel21/dramsim3.txt",
+      "sha256": "832e0277f3a456d612cb3110cbdcc583c91492d3b37fc3b1157e9bd18c30026b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel22/dramsim3.json",
+      "sha256": "23b496cdd18a43e94bfb9c2eeadc6fd87c461ae52e2ec23f37072a62288793cb",
+      "bytes": 2346
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/dram/channel22/dramsim3.txt",
+      "sha256": "acc05d93ea392373ef1d63d246efe56c3d90861d083d0186b4fff923d2736f41",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/result.json",
+      "sha256": "4eed41d656414cc86a338a7c0284f202bc2f63a24f6f09a9fbe5363cd0624a71",
+      "bytes": 33793
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/sst.log",
+      "sha256": "9e23baf08adb1015b5c52e20bba5d1cba926d79d5522f3ab77e8c988d3dc4de1",
+      "bytes": 207
+    },
+    {
+      "path": "raw/sim-dev-narrow-sorted/summary.json",
+      "sha256": "35b962d7da0c7fa376138f0dcd5e65c64db152ca06fbf16e8926d21b476b7c25",
+      "bytes": 42716
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel0/dramsim3.json",
+      "sha256": "0f6ac5ad3ce8ea37fa912695ff37cebd8b0979eb89d9c59f8f63ec40c5ce9004",
+      "bytes": 2358
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel0/dramsim3.txt",
+      "sha256": "77a288e72071e41a63e1970bc6d70bba78a6261e16d7a12fcade78b3ec3eb76f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel0/dramsim3epoch.json",
+      "sha256": "ed0d26b0401505299893a9615e83de43c907de8606d7e8d4fa3ccf96e96d0b97",
+      "bytes": 1775
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel16/dramsim3.json",
+      "sha256": "e5a5610000650698764205f81fea6436a15ac49448dab9a396507738e52fe0aa",
+      "bytes": 2093
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel16/dramsim3.txt",
+      "sha256": "c63ca278d8762d21e725a2260c32d28d69605d148dbf8b70821d8d908df55f28",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel16/dramsim3epoch.json",
+      "sha256": "915444a487db4842cb5abefd6b8cbcb934397a3d3fa5aeed0a1f7d1e8654814d",
+      "bytes": 1772
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel17/dramsim3.json",
+      "sha256": "15b4f563ed4663f40c5f62d5a778d56a506a48d9438dc271e1cdf3d6edab99e1",
+      "bytes": 2128
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel17/dramsim3.txt",
+      "sha256": "65b9059001d34a2c4a8e9002cac99a1d7d8a8c2323bcffa6c6fe20816ae09801",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel17/dramsim3epoch.json",
+      "sha256": "d784867d90d5195f343cd4eba809ab13fadca7c656f68168b851d5a173c1b92b",
+      "bytes": 1764
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel18/dramsim3.json",
+      "sha256": "bbaa77439e50c49c5bedcd58aede713ec2fefbcd03c54c62a956a6e2a4c8a450",
+      "bytes": 1801
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel18/dramsim3.txt",
+      "sha256": "2f16af323d13786ca7a96a10c03f7e0d1feacc09c005c56adc7a0276e38b2783",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel18/dramsim3epoch.json",
+      "sha256": "bb2c44eb7d0b9d60c3ca925532780fd29383f2721d04d4676bda10e377f3517c",
+      "bytes": 1719
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel19/dramsim3.json",
+      "sha256": "7a6b23f7fdbf21b1c7afbc71e768d8b4a7d6ed8104d97662ee5de5b72a1b84d6",
+      "bytes": 1931
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel19/dramsim3.txt",
+      "sha256": "17c61709eba2ae4f428d814868e951392a241f917e9197e26ccad87d4016e5fe",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel19/dramsim3epoch.json",
+      "sha256": "120ce1ab8a9655cf485bb19e599ebefa1488c75b4aadf07d15cc6557dd342213",
+      "bytes": 1739
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel20/dramsim3.json",
+      "sha256": "77aebb701450f57e4d33ca2c5c8216fff6a1027188b0e8372ac09fb82bd13c6e",
+      "bytes": 4027
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel20/dramsim3.txt",
+      "sha256": "fd3da60658c9c0f4b41491e656bf2f9458fecea46738dc033cf915c98e3258fb",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel20/dramsim3epoch.json",
+      "sha256": "9c070adf1a181efeac813941156951b392e533946890af3033677742bb588f75",
+      "bytes": 1822
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel21/dramsim3.json",
+      "sha256": "5f1e7138f361b0763b034987537a4c5b923e974322826493ffac74d246d24174",
+      "bytes": 2993
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel21/dramsim3.txt",
+      "sha256": "87af5fc240fd438c75b280826ed709946fca32c55eb7d74834c1c9fce8f87bf9",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel21/dramsim3epoch.json",
+      "sha256": "088bfedee1b2471bf38df02e1518d24415608822617db2015aa51871d08a5ea6",
+      "bytes": 1771
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel22/dramsim3.json",
+      "sha256": "849ab8a83ba98a31f09012e04a57e4cb5b907998a46d157dcacfd3395bd9ad4e",
+      "bytes": 2371
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel22/dramsim3.txt",
+      "sha256": "33e716e218ed33affbb06e77a870d4ec04b01a91115a877c57950bf3541e2cd2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/dram/channel22/dramsim3epoch.json",
+      "sha256": "c0953a5d2da4bfce30f3b3b4c195aebd938d7fb39d7e292cd7d57020e81b4263",
+      "bytes": 1780
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/result.json",
+      "sha256": "ab2244a4de76f7e4f343c2ef837c96f0207c56172ce93ae7cbfa71a3e7d4c9ea",
+      "bytes": 33833
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/sst.log",
+      "sha256": "3e3c06c5f3f438293b015e6acab68030ec68fd5ee844758138c0957642105da7",
+      "bytes": 374
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_narrow/summary.json",
+      "sha256": "8045796b1d1f45b1a448f14c9bf6643ab517456a4d39bddef06dea6f227593a3",
+      "bytes": 42747
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel0/dramsim3.json",
+      "sha256": "f7409bfaece138b661b17fed332bf50446c29d4c6f9888a0a2afd0692561175d",
+      "bytes": 3990
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel0/dramsim3.txt",
+      "sha256": "f27fd760c606d17f57a3f3891ac99365891f44e44bd03a7c5ef3db90433c9591",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel0/dramsim3epoch.json",
+      "sha256": "68f92215620675464b8d8ca7fef15113aa0813b6722de15404a4cb48b61e3bd5",
+      "bytes": 15989
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel16/dramsim3.json",
+      "sha256": "4ff56438453f45302a380d050d4c4d0f19f53da76d22552b5e86ee858ee16ee9",
+      "bytes": 3026
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel16/dramsim3.txt",
+      "sha256": "f273f0bdf02b770f772d7189be24e2513e5904321d76c9842fedf03d911bacfa",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel16/dramsim3epoch.json",
+      "sha256": "a78c14e027b02a0398086aa3ebeab8e1f9ec9bd704d8558e222f8a6043c1a993",
+      "bytes": 15745
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel17/dramsim3.json",
+      "sha256": "ca8dad987142938442fd6a1739ad5b3dd614ad37c4fb76d50163fee0be4e9a83",
+      "bytes": 3761
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel17/dramsim3.txt",
+      "sha256": "356083bf858dfc4a1b73ba156f1d1652d29fa35869edc30f935ed66af898219e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel17/dramsim3epoch.json",
+      "sha256": "076efd2172eba115ddf768d9833e800144f3ac802094eab9f065cdd391d835a7",
+      "bytes": 15826
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel18/dramsim3.json",
+      "sha256": "f8015ff09c676e6c8fd822c2768d347f622ecee33d455a58c40c9c4bf964002f",
+      "bytes": 1805
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel18/dramsim3.txt",
+      "sha256": "76881673d001d126baee678e35a39a89cd52d5c0e24d4315fb6106dfa2267333",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel18/dramsim3epoch.json",
+      "sha256": "80eaeac32fe54ca9548f9489fe3c0ea7a99a26a5fcbb171ec0989584cac9854d",
+      "bytes": 15463
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel19/dramsim3.json",
+      "sha256": "14f64b0ea5312b1204fa7ec8f53a453bcc9627bc135438d808f9382d809312be",
+      "bytes": 3063
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel19/dramsim3.txt",
+      "sha256": "23b6e015fd29bc24876e1b76e214d044259bc23961457b9d3d5f1deffe83b826",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel19/dramsim3epoch.json",
+      "sha256": "c92bf468db5be851ba6896c7ce36d4575829f5979a0b3f918d056fc0c27bffe7",
+      "bytes": 15689
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel20/dramsim3.json",
+      "sha256": "198be4fba1e6a1d160113cee296d0f4ad95e7fd2cf2a6a95343ee9ef5bdae69a",
+      "bytes": 5434
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel20/dramsim3.txt",
+      "sha256": "169c23aec38d1f2120c3ab33d6a5a8a54e4b0dd6bac6d506df38962ec77b50a9",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel20/dramsim3epoch.json",
+      "sha256": "8c862ffbcca1ca3617ab5f29d693d2077d5f4701c6883da40c9fb291179fc888",
+      "bytes": 16101
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel21/dramsim3.json",
+      "sha256": "9167e7c348b5ed89be9b55fe585d05b75170cbf44f891af5ce5c67882e4a3a7e",
+      "bytes": 2937
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel21/dramsim3.txt",
+      "sha256": "dd29aa4f1484ace64b16538ebb0c574dd7f63eb0b5ef87bb54394455c9837ba1",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel21/dramsim3epoch.json",
+      "sha256": "0cca39089ae56174e3c52bf0e624e719a18663c25201b7938bc1c68a8182423e",
+      "bytes": 15612
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel22/dramsim3.json",
+      "sha256": "4ebb1ea6415a3bd9c266368871dfed3bfab75745a0cc52824675935389ef80da",
+      "bytes": 4354
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel22/dramsim3.txt",
+      "sha256": "de95d8dc2eefcb14ebc60264b470bfcd3f027f9d98b5c2be2ca29b7d3ccb8e2b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/dram/channel22/dramsim3epoch.json",
+      "sha256": "088b79e91917597a75238b6b3fc6e15f3df3cced43a709a4f0ed5eb6071b0135",
+      "bytes": 15875
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/result.json",
+      "sha256": "17d1d946b93edf91b67178359ba7594cb9eca64627a0dacc615062e21d40bea0",
+      "bytes": 35237
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/sst.log",
+      "sha256": "9ce2bbd7a1feff17b8c76fe09d8d3aa0c456333162bb1beed8550dd82ccb8f7e",
+      "bytes": 371
+    },
+    {
+      "path": "raw/sim-reader-transport-development/dev_wide/summary.json",
+      "sha256": "3263b11a9f7ffa3fff5c9db068ecaba2142a9a2c76a34b5f0681ea883e57a5d7",
+      "bytes": 48956
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_narrow.resources.json",
+      "sha256": "dff32c51f5aa4a2a2d4b65665711b15d2e16700b12a0f01c22661feaa79737e4",
+      "bytes": 1512
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_narrow.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_narrow.stdout.txt",
+      "sha256": "7d3436a00d437dd7ac159fe8ee16de6448a5feb613d4e1e4a38a36f9eed22fcf",
+      "bytes": 195
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_wide.resources.json",
+      "sha256": "4f4179c39d7dfbf63bdf553d47b77cbf511f86be69e2f43fbbe646864de89a9b",
+      "bytes": 1502
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_wide.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-development/raw/dev_wide.stdout.txt",
+      "sha256": "4464d30203ad8da611f38651c51e2c6d9144ab4c01e19fa8ed1416c828e79f79",
+      "bytes": 197
+    },
+    {
+      "path": "raw/sim-reader-transport-development/results.json",
+      "sha256": "7d20f2691fb32c4599ac295269f54b473eaa5b4c306da36faf2b22534fc451a5",
+      "bytes": 5648
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_128x2.resources.json",
+      "sha256": "a4fa75c659501bee11955821e1346b5ea04800da15f6bd74dd6f780cc687ab32",
+      "bytes": 1499
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_128x2.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_128x2.stdout.txt",
+      "sha256": "b594cd0e7b5f7ad0e5c826405dd65b75f873fe3eb19598c0bf43b995ed781d7e",
+      "bytes": 192
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_32x3.resources.json",
+      "sha256": "4dda0c6882ac940b1c15f5e2833074b6c7f1829cd745645ab8f7dcac06c2d141",
+      "bytes": 1494
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_32x3.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_32x3.stdout.txt",
+      "sha256": "b52565424336753e96c43625f09bf39cbe575fcb8180536b7b5bcb662706be0f",
+      "bytes": 191
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_512x4.resources.json",
+      "sha256": "a8263f3493927362209b07796003a0129edd3fefc51c9cf07180e354909a9972",
+      "bytes": 1499
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_512x4.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_512x4.stdout.txt",
+      "sha256": "fc2a97c07ddfb550325e4ba134f7867fd37520b17e0ffccb8510c1616f8a388a",
+      "bytes": 197
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_64x5.resources.json",
+      "sha256": "38d6cb7af03b89c29597de1f32bb4b3fc562a2a4b862c1754bcc5534e80fbf2b",
+      "bytes": 1494
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_64x5.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/raw/test_64x5.stdout.txt",
+      "sha256": "bc5ce8567fdd61755515fae062630004047f92c23c9a5a412b9b11a9f418dd1d",
+      "bytes": 193
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/results.json",
+      "sha256": "e4da60eaf7f7cc48d1cdb8e32c92d7b192b410ba2606f3060feb3b318bb5d554",
+      "bytes": 10522
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel0/dramsim3.json",
+      "sha256": "69ddc3490596fb69c61ea050f8a3b3edd533aefc8ae85d2ae53cb8799bfb21e9",
+      "bytes": 3269
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel0/dramsim3.txt",
+      "sha256": "f525eb32d8e686bb485d755ce2dcedeeb4e52d07cf39050c90d59ae664334bc1",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel0/dramsim3epoch.json",
+      "sha256": "c82f5080bbf4baa21ee8401db780cc1bed902d9a2cbd3bfc5a39c9ec8c151ea4",
+      "bytes": 5367
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel16/dramsim3.json",
+      "sha256": "08337c9464be0b60e241046652752c2403b3a96643b985e5e70b089d61eab69b",
+      "bytes": 2562
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel16/dramsim3.txt",
+      "sha256": "f3f6d30ad621ac7ee2bacf465b3aeebbb5236680671f3c403d6f3746354aafd8",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel16/dramsim3epoch.json",
+      "sha256": "63ebd85bb08f14f4f20de5fb5cd8f5c1a0c2994a6f0e0a3b1e8a5a6a03421f94",
+      "bytes": 5268
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel17/dramsim3.json",
+      "sha256": "a29bb56df3e81b5b035e89f15b7d43f031456acdac20c8372656136a567ec3f4",
+      "bytes": 2738
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel17/dramsim3.txt",
+      "sha256": "8f4152d3c0ec5795b7a4ab97abd4336ba0cab9b5f161bb564df3fe8821fe68b9",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel17/dramsim3epoch.json",
+      "sha256": "3fa079e29ebe2950e858e76c70c30fc32b4e6b74d047a233069343807d5ad799",
+      "bytes": 5311
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel18/dramsim3.json",
+      "sha256": "5cab16949ae156b7ed079ca5687d0900857830e892a67a86cc8a9be3afb18e64",
+      "bytes": 1801
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel18/dramsim3.txt",
+      "sha256": "0f42dcfc6964198578b5fc6b9f52521fb3523b99e710be9afdc57a5c107ef2a6",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel18/dramsim3epoch.json",
+      "sha256": "c4266b5e372059dd5cc3aa9c5ce2e74dc41807df62f5ad137b02c1b390e046fe",
+      "bytes": 5155
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel19/dramsim3.json",
+      "sha256": "4030a52ad2acd77bed9cef88ef8f4b244d6806d5b6ae04bcb3ad170cf300abd8",
+      "bytes": 2721
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel19/dramsim3.txt",
+      "sha256": "4867f2c617d90c6ff1d60cd60d5330c9f8ef6ced951a94cd5093882df018cde3",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel19/dramsim3epoch.json",
+      "sha256": "7095af949d4e0782636fb09f33c39f690ecd94b5caf6143cf5441660bec199f2",
+      "bytes": 5303
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel20/dramsim3.json",
+      "sha256": "63fdab3a84b831b43e611959bc6b907f690bfd25792e4a27f67149689f8da09e",
+      "bytes": 4511
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel20/dramsim3.txt",
+      "sha256": "68e2be6de0e0cca8963ad0dbe7724eebb2d6921d0c82216d7d3b726b60075bd5",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel20/dramsim3epoch.json",
+      "sha256": "a5f4cab8ca5448ab71a7cc02aefb1c7fd61823bf896222ee7b78f10985904fcf",
+      "bytes": 5405
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel21/dramsim3.json",
+      "sha256": "501ae961626593ec3158d5ae06a743d63cb8eee574b6c34e84cd04124d01729c",
+      "bytes": 2630
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel21/dramsim3.txt",
+      "sha256": "d7defba5c5f160f48d86ca1db73f0266d13bb2a2674603224e84dc3c61a6f39f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel21/dramsim3epoch.json",
+      "sha256": "bc61b05fc2e539e532e5e853c6e4a4b7db52d0de035362df6c119d0a651102b2",
+      "bytes": 5256
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel22/dramsim3.json",
+      "sha256": "42c3da0c62bf1eaf21361cb0d285967ae49b069734d47cbf43447de6bab4c44e",
+      "bytes": 3268
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel22/dramsim3.txt",
+      "sha256": "25c591e314f0109d2a2f728e1a479638ee4511d2b73e9f5e6fe378414478ea28",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/dram/channel22/dramsim3epoch.json",
+      "sha256": "4404b7edf8eb0b29cd7db42317a5562715f39c0d18f64d87894b59a113f29e3c",
+      "bytes": 5335
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/result.json",
+      "sha256": "4ebdea30b969ec1cfddccb7705034a90cc8ea5797f22784f5c3904a2519bdc0e",
+      "bytes": 30324
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/sst.log",
+      "sha256": "49c3e23cd4f5deca958a3a271ab9e4debed65a98dcb90bb44e0c5daeac4fe181",
+      "bytes": 370
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_128x2/summary.json",
+      "sha256": "591eed5bfc8a8d7117dc079576a2da25bb5ae48a62dde4b914cf3df0ef12957c",
+      "bytes": 39266
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel0/dramsim3.json",
+      "sha256": "cbaab0de920f2fb44f7a974f13cec2f55d3c3b1547ddbbbefd1a85277932ce14",
+      "bytes": 2874
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel0/dramsim3.txt",
+      "sha256": "78fb7f883609218a81cc0cbc3434b2a84e8b1c0571e57518c64a05c7d2e4d06d",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel0/dramsim3epoch.json",
+      "sha256": "53662ba0d11d7ea0cc1cd3a41570b12bf7ec603ee170ad87342ed8c02fc95414",
+      "bytes": 3577
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel16/dramsim3.json",
+      "sha256": "aafebe79e83a3c116274bbda1e623db30d3e0985ce588324cb9fc4569239f5d7",
+      "bytes": 2313
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel16/dramsim3.txt",
+      "sha256": "13a7312e47bb0bc13c4d5a02a975cd0f4a5bac39d5fdffeb0be35b58e588fb5f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel16/dramsim3epoch.json",
+      "sha256": "64a93593b60cf2a698eb7a024d88d95bbbc6532c3784019b80c1c9257c9a6ce1",
+      "bytes": 3523
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel17/dramsim3.json",
+      "sha256": "6e5b92b26e47a946ba2c2ed8cb790db9b2649179e02efa12730172f9ba9cda5a",
+      "bytes": 2519
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel17/dramsim3.txt",
+      "sha256": "acf3b17cebdc0a73ba3911e7349919682502437ab20c46a604a413d5c23e5f51",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel17/dramsim3epoch.json",
+      "sha256": "885fc2b4b90cf202dee885e16065767d027fa6e9134b61bb9e1480cea7bb9260",
+      "bytes": 3558
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel18/dramsim3.json",
+      "sha256": "22ed9625c19386e2297c8da0e3a20e1a5b768c00a6131dbe725efb04474f6fa3",
+      "bytes": 1802
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel18/dramsim3.txt",
+      "sha256": "db3ad69fe949281525524b7c1a11a2d3cec6986be9e0fe86a6f9a3a7bcc2f96d",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel18/dramsim3epoch.json",
+      "sha256": "5ad12af0c06123c152d78cab3c3e11e120df2dc6290efbdca28f59f928d17ed4",
+      "bytes": 3437
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel19/dramsim3.json",
+      "sha256": "b7a857ae5b9cb05322f8ff7c3a925299c1347d355c8e15503d380a46e68a5e4d",
+      "bytes": 2383
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel19/dramsim3.txt",
+      "sha256": "10e9b5b835530b3023c49e9354baeec05f657814cdc65898b797e324b8b3f4e6",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel19/dramsim3epoch.json",
+      "sha256": "abb411a8d29bfea5bac4dbe384abdc8c6ca826675615b508e0153ff4fd0cefca",
+      "bytes": 3545
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel20/dramsim3.json",
+      "sha256": "4fb07beb8e1a34b35013ec21bc5d119dc539c3ae376df0659ad54a4561f262ae",
+      "bytes": 4384
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel20/dramsim3.txt",
+      "sha256": "6718029936970afbab6a6753ff843c982cc40b1c15653781d255f8e5b7795d21",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel20/dramsim3epoch.json",
+      "sha256": "734074dc0c2c1e93bc04051542c748095141601c48cf4f7257367f930381fdbe",
+      "bytes": 3615
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel21/dramsim3.json",
+      "sha256": "d21508b599fbf62fc55cca0d059a6a10b964b90f8370796438ab068bc2f40888",
+      "bytes": 2807
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel21/dramsim3.txt",
+      "sha256": "ef97ad91a18f62ff9c70bab9b113650b379d23b25a1c08f0b5d584211691be57",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel21/dramsim3epoch.json",
+      "sha256": "43acfb294fbb6e927e1b9a694de4c42f22b2772539f3530f5a318ab87814df4c",
+      "bytes": 3536
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel22/dramsim3.json",
+      "sha256": "e7df8b59690060589339d977a27159a6df0f93027329eb2cef9c2d1a1d5f5355",
+      "bytes": 2779
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel22/dramsim3.txt",
+      "sha256": "b021352510e93dfc708a071eb1ab22d7c250d494cb4bb1100096fe24b225ab99",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/dram/channel22/dramsim3epoch.json",
+      "sha256": "a6428e69fc87dd8dc41ea57544aacca2e27dc2d67e455733a2a2131d8e974cb3",
+      "bytes": 3574
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/result.json",
+      "sha256": "f36704aade3878219566102eb666d63961f486af02c2531e25bc5546e3a85a9a",
+      "bytes": 33354
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/sst.log",
+      "sha256": "7705415796bb15dffc31acb3a8b5c37edf603a5bf63ef3993dab154e00ef0ab1",
+      "bytes": 369
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_32x3/summary.json",
+      "sha256": "85dc1dc8b4369a5f3cd449bdd432a72846b9002ddc6da68714f66c0784a19953",
+      "bytes": 42951
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel0/dramsim3.json",
+      "sha256": "d01f7244e0b87e6f792c5fcfb3ee15b2e124916a7a6bfa808dfa1c0faff3195b",
+      "bytes": 4650
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel0/dramsim3.txt",
+      "sha256": "8f1d9fbdee57d1df758abc582d86f186fb66abd91cbfe5ef547b4217a0e50c2f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel0/dramsim3epoch.json",
+      "sha256": "7636d031d6c9442a20bc12b23bb6c208cfcf1315a9aab94cc3b9b976a55ad709",
+      "bytes": 40609
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel16/dramsim3.json",
+      "sha256": "344c635b1af6ca88663308f80476c4a4dc318d5632065d95dff2bb4359124fef",
+      "bytes": 3693
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel16/dramsim3.txt",
+      "sha256": "16c7be299c8e7dd202ab1e0a877898f3827e61b25bddcd2963b398f95029c3ff",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel16/dramsim3epoch.json",
+      "sha256": "0ef04adf2e6cfbb1843f0d0ee18e6cce93e6865eba2f212fa3bce969c112aef3",
+      "bytes": 39967
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel17/dramsim3.json",
+      "sha256": "22493a0028100614b692699202491968b9a37929e75c5dd9ded35992c2c88d25",
+      "bytes": 4902
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel17/dramsim3.txt",
+      "sha256": "c2fc418797f77ad01ec37489bc84d2d9224df7d108a950369fbd5d5c7d8bca71",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel17/dramsim3epoch.json",
+      "sha256": "d64f652aea9130ce31bab145350c133069b936f69e97d13f6cf0840bc257f4f3",
+      "bytes": 40131
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel18/dramsim3.json",
+      "sha256": "ade7832d0b4f2d4b308d9f849410fa2e8b47ce738d1d56ac5f08114262505a0f",
+      "bytes": 1809
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel18/dramsim3.txt",
+      "sha256": "b067c44d447a1d91baf69a89467aa33273de3d20f2560a0a7f8734297cc59a02",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel18/dramsim3epoch.json",
+      "sha256": "31afe3265d6659488ef07bea63b2e367955634d3b0b87308fc3763168b32a3e7",
+      "bytes": 39529
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel19/dramsim3.json",
+      "sha256": "2d4a8ebbc354c28b12b08c928b5c3fc5debdfe1d530d15dc92be7bb82b8a343d",
+      "bytes": 4338
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel19/dramsim3.txt",
+      "sha256": "4069a75db3764c830d969b2afa2958cd229c1e29422ed3ccf7ad61ea535b2a60",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel19/dramsim3epoch.json",
+      "sha256": "db0352bb6f115e80159fe7aaf8e0ad1d7557e4bcc9181afc5e0eedc39ddbeaa0",
+      "bytes": 39871
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel20/dramsim3.json",
+      "sha256": "9a9d944c32639402ee3d1ec24738e8e25ecadd12312f93470641b4fa7d3adf84",
+      "bytes": 5991
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel20/dramsim3.txt",
+      "sha256": "c677667c110dcaec0033c1611b7ce828d8364ec6136aada8d118b7361ec6cd2f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel20/dramsim3epoch.json",
+      "sha256": "ad6f938d146fe879b9211ec93772ffff679570429f15f3343b82e5b2b32e5e57",
+      "bytes": 40810
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel21/dramsim3.json",
+      "sha256": "a6be7d77c23f88b58802d34d4a51c78b806a9f18baec192778f14bfb2d5daa0d",
+      "bytes": 2854
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel21/dramsim3.txt",
+      "sha256": "617ba2293ab411e545b514bef7e0b7215f2f42b2d43557817c335bf872ce9900",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel21/dramsim3epoch.json",
+      "sha256": "cfb1086085b65f6966d8cdbc1264f283c236ada24006ecd6d34493d930ab6dd0",
+      "bytes": 39773
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel22/dramsim3.json",
+      "sha256": "b110d1a56d7909874f086a870cbae0f0faf0e7db50cc57b20e4c67025883f9b0",
+      "bytes": 5972
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel22/dramsim3.txt",
+      "sha256": "b30edb157b2d811d1df75fb7c2ae1c05b58af829f7774f6e208bae05d7c8c15e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/dram/channel22/dramsim3epoch.json",
+      "sha256": "82b7f32af8121b0d82b4d3a6d2f3ee7dcaa67e5c3087e742256ca7c9012f4c6a",
+      "bytes": 40323
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/result.json",
+      "sha256": "23054560077947a450d603aafd6ad8b578586dd4e31cc299146bbbb169b00ff3",
+      "bytes": 46365
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/sst.log",
+      "sha256": "91c5cbd859002a3d610cb98796d96aba331a165f93056a43c9755b28c41dee2f",
+      "bytes": 371
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_512x4/summary.json",
+      "sha256": "169f925bf4abfc85eee2634e2e90fdc4a13ef7ba0c057e08172b4823a8bb5c82",
+      "bytes": 71009
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel0/dramsim3.json",
+      "sha256": "5137e894b2432002a9de9f2f05002d5cd0b63001e176229447dc985ead9868d0",
+      "bytes": 3751
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel0/dramsim3.txt",
+      "sha256": "d01508d5b601810197b2598d43699f183caf5a9140c8684a09dc584ea247eb31",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel0/dramsim3epoch.json",
+      "sha256": "f0779a94f6c63d7d73d59572dea2d341a8ab9c7b51089e6e8ab9eb49f89521cc",
+      "bytes": 8977
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel16/dramsim3.json",
+      "sha256": "7e3da152fca6ac1e0046b5aae416477a36c300f88de2074bdff28a69098681f8",
+      "bytes": 2692
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel16/dramsim3.txt",
+      "sha256": "08b2706b994c4c506d3f5d6312bfee72289ed0850d52aa8a09daacbafb59609f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel16/dramsim3epoch.json",
+      "sha256": "1a18818bcef3cbbfaa2515c3b15b7d7a98630fad13faa44f02d4d986bea0212f",
+      "bytes": 8777
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel17/dramsim3.json",
+      "sha256": "db7e84d13033b31a13211f1f8296c794e0e60e8b3173b0b860c924c146989eb3",
+      "bytes": 3307
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel17/dramsim3.txt",
+      "sha256": "0258c923d01c188548bf6d4d989e19a06b49af042223aeea30c834aa9f357a9f",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel17/dramsim3epoch.json",
+      "sha256": "9b92fb0b4ca816c9f3c05d3cec7b7a18daddc09fc315414fe4dcafd61d1cf8cc",
+      "bytes": 8882
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel18/dramsim3.json",
+      "sha256": "93ce079e259756a3f4de3be333929eb192b091530055c6f35367ebd404d3a863",
+      "bytes": 1803
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel18/dramsim3.txt",
+      "sha256": "fb61c6b7ef801560b37127e0034247066b6ec40ef1aa66589c85206b7019010b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel18/dramsim3epoch.json",
+      "sha256": "d0b1ce2377fec9beb99cdf72945adfec6a8c3af88127f4e22b944d9e3c40fe95",
+      "bytes": 8591
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel19/dramsim3.json",
+      "sha256": "c47d970143f5bf9591e068a6c5fe6beb77e0f9d91f44f3c3c08f3e8a6dbc8ffa",
+      "bytes": 3041
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel19/dramsim3.txt",
+      "sha256": "c38fde4fab9145af26b7eaef304bb45e4e133b3a9ecd03c2d45f4f12291ac165",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel19/dramsim3epoch.json",
+      "sha256": "62771031f01a151f874b2567d404f8ad9bb8edf62ff754cfdb22c57cadd454ae",
+      "bytes": 8799
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel20/dramsim3.json",
+      "sha256": "e380919e9471da9379d05b747171550fa911df1660c81afefa2db64f1527e160",
+      "bytes": 5139
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel20/dramsim3.txt",
+      "sha256": "7f9fef63b7b5a984f7d502063be9a07f3567ec7b51b851c64a99d45cfc6fc083",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel20/dramsim3epoch.json",
+      "sha256": "1a29e1569cb68583231e0eb7ca9b9095fbb9ddf8f7ebd5306465873408c3c3c6",
+      "bytes": 8996
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel21/dramsim3.json",
+      "sha256": "fe5829c244b73f677f1050aacc3f8afec100c980a6f3bd265ebedfb1c0315f0a",
+      "bytes": 3616
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel21/dramsim3.txt",
+      "sha256": "20425e2320b0463f88d9a4209d6f75ba3f41b287097e1d7e34ad550a9d5ea168",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel21/dramsim3epoch.json",
+      "sha256": "0b72a56153baa2d9be27101906caf77b71dec892275c94993b937c340be474bd",
+      "bytes": 8803
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel22/dramsim3.json",
+      "sha256": "2175e495447662aa8c852724ca1c0f244917fcd983818c66de859800fcbe8cad",
+      "bytes": 3730
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel22/dramsim3.txt",
+      "sha256": "aef45cac6f3d0f327c87c1e98268e25dd1c60ce24d7e8f87c8c6b84250a25bea",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/dram/channel22/dramsim3epoch.json",
+      "sha256": "07e4a824ac6c7c413b4906150f405b43e5e8faab70ed28e7ad9be8267164ccfe",
+      "bytes": 8963
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/result.json",
+      "sha256": "d9433ebbe523597eb2b054f33ab8a5f0337b9efe1a66952288e7d73f81a512f7",
+      "bytes": 32901
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/sst.log",
+      "sha256": "7489632c25bd668f03d9fbe7c17f456923aa16ae95933b9e896469a17df89996",
+      "bytes": 369
+    },
+    {
+      "path": "raw/sim-reader-transport-holdout/test_64x5/summary.json",
+      "sha256": "56ee7a3e30e1ce95b9dfffa7ada7753a11e89e9e232fce6144f0b6cd0309cc55",
+      "bytes": 44396
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel0/dramsim3.json",
+      "sha256": "08d3590fd99de616df85a503e2054cc9cbda0483860b2293830da5a0a4823f15",
+      "bytes": 2369
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel0/dramsim3.txt",
+      "sha256": "55a2a674ded74fdf5d5edd3eb7b1d8f31b0eaa9b1781e85ae8bf1061e22cefca",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel0/dramsim3epoch.json",
+      "sha256": "401c2a5f822527cc8824b08b1ebda3a115626a071ee2c856f5a52139078a00b8",
+      "bytes": 1771
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel16/dramsim3.json",
+      "sha256": "70a234ba434110cfc9c604944510413f8b7ad165c3932510a9421d47e114a2bd",
+      "bytes": 2121
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel16/dramsim3.txt",
+      "sha256": "d8092b2adb27ba39c64d6555de062106d953ffee41d36161aef2d4799de256fa",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel16/dramsim3epoch.json",
+      "sha256": "ed72aab56ea8317bb1b0c70975e4200d9f8e30c398125b24c5050587932620bf",
+      "bytes": 1772
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel17/dramsim3.json",
+      "sha256": "0e4f778668d2f4a299006c7634e2165ef16f06047261989772a39e071cf13f24",
+      "bytes": 2238
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel17/dramsim3.txt",
+      "sha256": "c559b42db009ebc9ce883c1c43603afb87172425ea9f2649f47afe250489b511",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel17/dramsim3epoch.json",
+      "sha256": "51b89b3d621d8b7caa8457a98de28df9c637a7a4e39b5cec53a7c173b9bef3c8",
+      "bytes": 1767
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel18/dramsim3.json",
+      "sha256": "42f4f0b4104a31f556e5830f92729024a78882962604c010f8f80c76ce9be763",
+      "bytes": 1801
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel18/dramsim3.txt",
+      "sha256": "e5d7ee4e10a86d51c8613391033f8f2a457569cbdd66de0d440255e1ab632ae4",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel18/dramsim3epoch.json",
+      "sha256": "bb2c44eb7d0b9d60c3ca925532780fd29383f2721d04d4676bda10e377f3517c",
+      "bytes": 1719
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel19/dramsim3.json",
+      "sha256": "d3cb6886351e53828d654ae1a53fe71c7c333b16088cc885c9d3ca3fe3cb5e32",
+      "bytes": 1932
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel19/dramsim3.txt",
+      "sha256": "07782e45c0a7029e13cf1e0060e399be8daeeb1d5d653883aff9959a9763f452",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel19/dramsim3epoch.json",
+      "sha256": "04de3040326174fd1566923ddba96f9dae7515ddd1dded8f7ac533cf07fdbb58",
+      "bytes": 1740
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel20/dramsim3.json",
+      "sha256": "0645f2f1012c8899c093f02016f78d1485492a5f7ad05800947e0e5fd13c02ce",
+      "bytes": 4093
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel20/dramsim3.txt",
+      "sha256": "2041705c096d5ad78336724b4ace21e50eed428fe0dfb067a1372865ed1a9c1a",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel20/dramsim3epoch.json",
+      "sha256": "34bf62797b2c92b844c7a468017a665199c286166fdba81243f757a421a71815",
+      "bytes": 1822
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel21/dramsim3.json",
+      "sha256": "f610c10ded6166aa462666bbe799cbe78f22b8a833b136f7a0d8614fe58faac6",
+      "bytes": 2957
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel21/dramsim3.txt",
+      "sha256": "deea88b17f018ca6ca4c4f461bce51ac62e1425ecaa1818c35cb6c1577725881",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel21/dramsim3epoch.json",
+      "sha256": "6ce059131e0b6ac7a1ae647ccbcc0c7b56ead5dcef97f471a625bb784fdd28e8",
+      "bytes": 1770
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel22/dramsim3.json",
+      "sha256": "f47e0bc9af8c7a2efef425a5eb10fde19073d171b7710478c79c16e5833014bd",
+      "bytes": 2458
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel22/dramsim3.txt",
+      "sha256": "11054550294af6fd6fec02f96a184ecf83b0e3997698b8795e8bc91a5c46fc0a",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/dram/channel22/dramsim3epoch.json",
+      "sha256": "2511e822d3be54006cc60f463da6da26b27f7d9ee06f0387efbad662bd68eaba",
+      "bytes": 1777
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/result.json",
+      "sha256": "c2c1eb5481190616be332625f78a8f5be0ce1e1bbbcc1809d05e7d5b3bbe7acd",
+      "bytes": 33840
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/sst.log",
+      "sha256": "15c492bba72092b4f3b638be0d7debe94c2ae44bdace8549aa62ba131e86a392",
+      "bytes": 367
+    },
+    {
+      "path": "raw/sim-transport-development/dev_narrow/summary.json",
+      "sha256": "d176d12a090aef904abbb3b6326423c9725d41b2aac38fd0e745546cbf52b5bb",
+      "bytes": 42727
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel0/dramsim3.json",
+      "sha256": "3103b8b00f281b7650b5e90dfa3601849347607b19502959568f4b8768800a05",
+      "bytes": 4058
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel0/dramsim3.txt",
+      "sha256": "d668d5de0908e78553902ebaedd51e54f52a8ddc8316564a0a6dec6f5da86d9c",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel0/dramsim3epoch.json",
+      "sha256": "eeb689d09078b992c13ae83dec845db6465430ea9a63ab83705d90bc52988efc",
+      "bytes": 24584
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel16/dramsim3.json",
+      "sha256": "1eb4502769a333ae5b83c1b5d0f8ff324d96a00bd342bf2d909a14af325bb805",
+      "bytes": 3135
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel16/dramsim3.txt",
+      "sha256": "dedbe7ed5a5ac74fe4f91ad47812e34da3ef9fd338f867577b4c8cbfb7ffea83",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel16/dramsim3epoch.json",
+      "sha256": "442ce2aa1aefbc49ebc9063d27d28c5adba32d2be7f838bf1703f9405e36e95d",
+      "bytes": 24450
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel17/dramsim3.json",
+      "sha256": "84a2f24c977e8e4960221dda02d758d45e17771555373b9e73467194fbadfb28",
+      "bytes": 4002
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel17/dramsim3.txt",
+      "sha256": "ef7da85f21de1ac990f761db244f9505d6064cf5fa601a4014de47135b1d76e2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel17/dramsim3epoch.json",
+      "sha256": "4b80cd7394c28fe532cc2582aff19c2e3c8d5af774fda746064f03db355dfbef",
+      "bytes": 24658
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel18/dramsim3.json",
+      "sha256": "1f0599d1cf54a6ee9df06538a5bd6727574853f1429dfb6662685be4ac50669a",
+      "bytes": 1807
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel18/dramsim3.txt",
+      "sha256": "25bb6c73c313ff314def2cc07c6888a37974eaab4a62765cdbf7d015bc04a130",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel18/dramsim3epoch.json",
+      "sha256": "cea35444211d0430a035662ecb6df0d33c124586e3ce890dd8c536ac082bf49e",
+      "bytes": 24058
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel19/dramsim3.json",
+      "sha256": "5fd8cbb817671370d021e2e143dd3a9b80894f3f130c0cee1cf90b4a4b82da2a",
+      "bytes": 3208
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel19/dramsim3.txt",
+      "sha256": "1c8c050783de71e806bb36c0ab696bae2d075289c1b30e2e69d9c105173546e9",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel19/dramsim3epoch.json",
+      "sha256": "fad1d9dcfe78ffc143989552800c2284a2949ba0e2a0d02e07708ea5a2906e87",
+      "bytes": 24388
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel20/dramsim3.json",
+      "sha256": "e47b5e684bb15a1bb70115bfc07dc8b7abd4961dd4347aaef9780638bb271c56",
+      "bytes": 5386
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel20/dramsim3.txt",
+      "sha256": "6eaa732b9ee5bbcb0a4582b8780355624695b5783577e32a8b680d4ecd6fd13b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel20/dramsim3epoch.json",
+      "sha256": "02989496defa3b510336d07b012b08ef08511effad2a31d1e046b125272bf396",
+      "bytes": 24893
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel21/dramsim3.json",
+      "sha256": "27c0064ec000a57a1865a57664b336a826c7fc8a3e2f8ee2138588704628dd6d",
+      "bytes": 3193
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel21/dramsim3.txt",
+      "sha256": "cf5c10850e1b6041c7c832fb109903032b951cb2e41d48e1c2df73a1497caab9",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel21/dramsim3epoch.json",
+      "sha256": "b50ce48d0a0bedf480475ac26fd3621ba0d12b353f5c09e54669303eb7adc25f",
+      "bytes": 24258
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel22/dramsim3.json",
+      "sha256": "ada60a7f0652e4f261e873072903507f4d3bf4938a127ea55413e8c7b624b998",
+      "bytes": 5064
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel22/dramsim3.txt",
+      "sha256": "20ccb22e93181969afb12645b6c89cd697b3dc201654a3de0b90a9a55ae5d30b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/dram/channel22/dramsim3epoch.json",
+      "sha256": "473ab7d3515f4959cb87626efecf5e0a922aa5c9ad922ef7fa69fdfbab65ad57",
+      "bytes": 24783
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/result.json",
+      "sha256": "6da9e6b59d244a0c5fc0c2495d659f8dbb99bd2c9e52d9caa0d7dc6392cedb41",
+      "bytes": 35250
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/sst.log",
+      "sha256": "3f91feea02311a2d327b8812f5497430acec42034a967bc20616b3604f9b06e9",
+      "bytes": 366
+    },
+    {
+      "path": "raw/sim-transport-development/dev_wide/summary.json",
+      "sha256": "96c5e2d6410c467e8799729b61be966ee3de69c5947143234b820e59ff754eab",
+      "bytes": 48941
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_narrow.resources.json",
+      "sha256": "3499c31b811164016d51a1c0cf71f33a03cd6b8b0f2832c6a08179bdf9791990",
+      "bytes": 1477
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_narrow.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_narrow.stdout.txt",
+      "sha256": "b6a12517b52585d09450040ef1c9af77e995f8983e719357ce15304c3e3883c9",
+      "bytes": 188
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_wide.resources.json",
+      "sha256": "ae91bbe63568e4b8b7daf113e3e5f0cab709781ec771aebde00ca4d16022a180",
+      "bytes": 1467
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_wide.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-transport-development/raw/dev_wide.stdout.txt",
+      "sha256": "1b13308606e7c3c484eba6da2c4ecad9b730bed157ae8855f4234a1afa2de0f6",
+      "bytes": 190
+    },
+    {
+      "path": "raw/sim-transport-development/results.json",
+      "sha256": "e1b4525801024e89bf150c3c4c42a458d8ffa6a5d071157a2d52c4b08d806182",
+      "bytes": 5550
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel0/dramsim3.json",
+      "sha256": "6b5f86112e1d4e323cb457d8280856b2fbefa6cf3bebffa257a0bccd87a342ff",
+      "bytes": 2197
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel0/dramsim3.txt",
+      "sha256": "f60e6cc22f5827bb82a0511595690c8f9c2ba8e0ab1422ae24493b995cf6cc50",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel16/dramsim3.json",
+      "sha256": "539bfb31a7f3e182296471555ade3402aaa4393e9a74b992d2c47bc97450834c",
+      "bytes": 2090
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel16/dramsim3.txt",
+      "sha256": "22040d4932ebfc6d02c21b5a749ae370e5b72b0be5368907a15f92cd1c4cea4a",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel17/dramsim3.json",
+      "sha256": "c472825666d8888e01009ade343466add2882cd45672075ec1d3f9cbf995cc5f",
+      "bytes": 2104
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel17/dramsim3.txt",
+      "sha256": "f16d077586c229d73949d442e6291e806e93efce77adeaa99d25fce74f2d7659",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel18/dramsim3.json",
+      "sha256": "5a529fb9dd2fdb0692cab3d91298007f6a97c7e62fe43b09a5c4fe116b9e363b",
+      "bytes": 1796
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel18/dramsim3.txt",
+      "sha256": "b319bc80957f844458ffe82eea591dc0ce9d5f00a2c6542fce62ee658c509c2c",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel19/dramsim3.json",
+      "sha256": "60557968e9c9a93161bcd1653eb22e4f03661be228b3405032600b9078c94709",
+      "bytes": 1919
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel19/dramsim3.txt",
+      "sha256": "908ef09f5b954aad7e60d1b0e916c82c7d031596171faf500bb0bf8d6821fed2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel20/dramsim3.json",
+      "sha256": "f3967c8377737bb5ec36ea4c2f69ef18b2b9d6b8980777d2a7821d33f6566bd2",
+      "bytes": 3309
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel20/dramsim3.txt",
+      "sha256": "795030c72a1bedcb64d4925d875e11f953709ce089e99cd9dba64ae326b1add2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel21/dramsim3.json",
+      "sha256": "55436c8a512e4c5a478c02060c7ce1846eae354a4b909c7e11521731f3911c62",
+      "bytes": 3079
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel21/dramsim3.txt",
+      "sha256": "832e0277f3a456d612cb3110cbdcc583c91492d3b37fc3b1157e9bd18c30026b",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel22/dramsim3.json",
+      "sha256": "23b496cdd18a43e94bfb9c2eeadc6fd87c461ae52e2ec23f37072a62288793cb",
+      "bytes": 2346
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/dram/channel22/dramsim3.txt",
+      "sha256": "acc05d93ea392373ef1d63d246efe56c3d90861d083d0186b4fff923d2736f41",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/result.json",
+      "sha256": "4eed41d656414cc86a338a7c0284f202bc2f63a24f6f09a9fbe5363cd0624a71",
+      "bytes": 33793
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/sst.log",
+      "sha256": "cc90d24fa36ca678e32a30d4f616378aa61872e965ebdf442054e8b520cd8947",
+      "bytes": 360
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_narrow/summary.json",
+      "sha256": "7bef95f35d85b20ae7e631c9522022c9feef481766d35ec7ab06ba876d6fc4da",
+      "bytes": 42698
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel0/dramsim3.json",
+      "sha256": "59278956eb3ce5d0ec28fb7dadc972e21970999076473b05e5a7e89da6e559dd",
+      "bytes": 3177
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel0/dramsim3.txt",
+      "sha256": "694e823a6c8f8685d93f1bd0e940644870bc3a674e845be534fa0c633ee6431e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel0/dramsim3epoch.json",
+      "sha256": "bbb81b4015187385d3d67fcee572756ef3c11e9e1cdd6816f241c0d8c6c8dd16",
+      "bytes": 7158
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel16/dramsim3.json",
+      "sha256": "b032d9144a9011a2cf075e565be8f5ee0b8a9b4480d4a9d066e919ab251f3815",
+      "bytes": 2622
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel16/dramsim3.txt",
+      "sha256": "5a7e37fc60d2174a974e89cab04bdad3d49814723e3df7425358481f114654bb",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel16/dramsim3epoch.json",
+      "sha256": "edd7cd5e3d6ff912c7121ee9542cd8c32a18d10fe509b59fbfdf378286ffeb26",
+      "bytes": 7047
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel17/dramsim3.json",
+      "sha256": "931488ea71c73951cdbccd5f98affa8464da42b4e79c2cd2ddecd0fa1755882d",
+      "bytes": 3739
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel17/dramsim3.txt",
+      "sha256": "d2b70a14106fb0c6f94bd9fa1257c4c9c4051d528a9fbb97bc48d0b7f578f8cd",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel17/dramsim3epoch.json",
+      "sha256": "99cbe355e4a7e9628049450663f696f58b958e66eae8bf8f8f2451651d3f2448",
+      "bytes": 7124
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel18/dramsim3.json",
+      "sha256": "81a8e828ff6da9cb2351216395b4b81b516a39d05d09484ca7cd76b037303489",
+      "bytes": 1803
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel18/dramsim3.txt",
+      "sha256": "2bd33dfd9dd1c1ba86b058270ffb615d5cbcd1eee99d982bd22f67245c2bfc75",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel18/dramsim3epoch.json",
+      "sha256": "08be7917f166f66fb9a56bfa81ef873d2af53d4751ca18896a54291e1792d980",
+      "bytes": 6873
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel19/dramsim3.json",
+      "sha256": "0aa0b18fca3a5e9f8b40c7db4b1ee59fef586c3f6b55f25f2cb22c264eb53f0e",
+      "bytes": 2888
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel19/dramsim3.txt",
+      "sha256": "b059859b87205c3e55551dde8a8a1bc7644552d9f0d374e44e8ce97bf20cbb12",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel19/dramsim3epoch.json",
+      "sha256": "ae487ee64eb1b96ea3f41250de70b19237cbf4f0e17e3d3f8ee9921037577a7b",
+      "bytes": 7098
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel20/dramsim3.json",
+      "sha256": "04acdbe99d6fdc43c605c6af2cd127f66ef0cfeae20d5bdb34598474c1b1ee57",
+      "bytes": 4407
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel20/dramsim3.txt",
+      "sha256": "ff008ddcab143b1600376e0e1197bb72a33be54a3a97f93ce048ec3062790c04",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel20/dramsim3epoch.json",
+      "sha256": "54241a73931aff83f88be9472cc30812bd12fbdb6ea0fe08adf57463e8f2f565",
+      "bytes": 7184
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel21/dramsim3.json",
+      "sha256": "44ec025f802cb3c747829ed8fe8ba74b6fde332b65fd6311779bf370c129be79",
+      "bytes": 3311
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel21/dramsim3.txt",
+      "sha256": "96da2cfbd1fa5270b7740d758c8f6906009c975f0adc3e3f9c1e16fe3eb33df2",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel21/dramsim3epoch.json",
+      "sha256": "756752f9f2bef57e4986ab54fe63ac5f0449117bf2d356f0102996f1cff74cb6",
+      "bytes": 7022
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel22/dramsim3.json",
+      "sha256": "9c5e3a9f3a8555172a12967876e5990b69d3d24cd6c0a4dc189b3293c7045fe4",
+      "bytes": 4178
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel22/dramsim3.txt",
+      "sha256": "aaee2d87cc44a1d98b2ac9b31e033d5a7c681b79aaeffa2c59248e35079fd79e",
+      "bytes": 5565
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/dram/channel22/dramsim3epoch.json",
+      "sha256": "de55ba52d11f03be047ae6c9f02541644fd8c322ae5b669f2670ee67c2cc0cd7",
+      "bytes": 7152
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/result.json",
+      "sha256": "c374dd4ff75dfb026cf8ec88207b4c0ba12da88b838ab2f5acf9420928a4b979",
+      "bytes": 35201
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/sst.log",
+      "sha256": "1a6349b48c80f6844972659f87c5b75fbd470578d0ebaff54ab996e7bf069413",
+      "bytes": 359
+    },
+    {
+      "path": "raw/sim-zero-regression/dev_wide/summary.json",
+      "sha256": "03f50c46edc65ecc27ad47df49dc74f6e16f7697d43b1bbf5c9d42a4c86d9434",
+      "bytes": 48910
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_narrow.resources.json",
+      "sha256": "981820a8b734bb41ea42dc65d50a6932397d873b7de1433d20850908be550855",
+      "bytes": 1496
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_narrow.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_narrow.stdout.txt",
+      "sha256": "0cd684a1419a9af9ba61537aee2481a9e991b7b5a2ab6f91e77e21cc84885b77",
+      "bytes": 181
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_wide.resources.json",
+      "sha256": "b616dfe2fdac3d5f92355b952391aab812565d4922c8ec6756b9152fc6d502dd",
+      "bytes": 1484
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_wide.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "raw/sim-zero-regression/raw/dev_wide.stdout.txt",
+      "sha256": "34c7aa4d98413b403e0afa1dcf95baba5211a0c118cf2bea96fc97b94bf5d329",
+      "bytes": 184
+    },
+    {
+      "path": "raw/sim-zero-regression/results.json",
+      "sha256": "509ef60367794c0587de22657d43bb6c593a1b3d5fbdd69fbb1b3d421caf3075",
+      "bytes": 5607
+    },
+    {
+      "path": "simulator_changes.patch",
+      "sha256": "88759a3f7e8d986882a229befa7fc0f09bdefe5d2e23edce1b140056da8cb80f",
+      "bytes": 4936
+    },
+    {
+      "path": "zero_override_regression.json",
+      "sha256": "860674f69fd0a7a0eab06f65fd5517ca64464b002eeff9c9e8a65191097527e4",
+      "bytes": 1235
+    }
+  ]
+}

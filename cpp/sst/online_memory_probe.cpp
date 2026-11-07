@@ -2240,6 +2240,19 @@ class OnlineMemoryProbe final : public SST::Component {
           workload_path_.c_str());
     }
     spine_axi_profile_ = spine_axi_profile_from_id(spine_axi_profile_id_);
+    // Transport delay is separate from DRAMSim3 device-command timing.
+    spine_axi_profile_.read_address_pipeline_cycles +=
+        params.find<std::uint64_t>("spine_axi_transport_read_cycles", 0);
+    const auto reader_transport = params.find<std::uint64_t>(
+        "spine_axi_reader_transport_read_cycles", 0);
+    if (reader_transport != 0) {
+      const auto inherited =
+          spine_axi_profile_.maintenance_read_address_pipeline_cycles == 0
+              ? spine_axi_profile_.read_address_pipeline_cycles
+              : spine_axi_profile_.maintenance_read_address_pipeline_cycles;
+      spine_axi_profile_.maintenance_read_address_pipeline_cycles =
+          inherited + reader_transport;
+    }
     try {
       active_memory_channels_ =
           parse_active_memory_channels(active_memory_channels_text_, channels_);
@@ -4155,6 +4168,11 @@ class OnlineMemoryProbe final : public SST::Component {
       {"spine_axi_profile",
        "Spine AXI profile: hls_split_9c08763 or legacy_uniform64",
        "hls_split_9c08763"},
+      {"spine_axi_transport_read_cycles",
+       "Additional request-to-HBM transport pipeline delay in data-clock cycles",
+       "0"},
+      {"spine_axi_reader_transport_read_cycles",
+       "Additional reader/maintenance AXI read transport cycles; compute ports unchanged", "0"},
       {"spine_maintenance_architecture",
        "Spine maintenance architecture: shared_engine_serial, "
        "candidate10_one_pass, or candidate10_refactor31_segmented_exact",

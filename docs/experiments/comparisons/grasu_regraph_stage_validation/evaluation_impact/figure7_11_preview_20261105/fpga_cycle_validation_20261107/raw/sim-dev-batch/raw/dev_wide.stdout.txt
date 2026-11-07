@@ -1,0 +1,2 @@
+PASS spine_vertical: cycles=652988 backend_requests=23435 DRAM=23435 ACT=5191 row_hits=10664
+evidence: /data/chuxiao/checks/fpga-cycle-validation-20261107/sim-dev-batch/dev_wide

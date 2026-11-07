@@ -1,0 +1,48 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt vertices=256 initial_edges=18 logical_updates=1 physical_updates=1 final_edges=19
+SPINE_DEVICE bdf=0000:82:00.1
+VERTEX_LIFECYCLE_HW_PASS vertex=255 transitions=deactivate,activate
+SPINE_HOST_MAINT_PHASE arguments_ms=0.01957 kernel_wall_ms=0.190036 readback_wall_ms=0.052682
+SPINE_DYNAMIC_MAINT_PASS logical_updates=1 physical_updates=1 target_level=0 path=2 hot_edges=0 cold_edges=1
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_end
+SPINE_HW_ROUND_TIMING round=1 reader_ms=0.29828 compute_ms=0.34093 kernel_span_ms=0.34093
+SPINE_HOST_PHASE algorithm=0 prepare_ms=0.00116 upload_wall_ms=0.120424 arguments_ms=0.054722 kernel_wall_ms=0.445024 readback_wall_ms=0.183915 decode_ms=0.107544 active_record_capacity=16777216 active_records_used=1
+KERNEL_PAIR_RESULT algorithm=weighted SSSP iteration=0 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=2 owner_retired=1 owner_reactivations=0 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=1 reactivation_fifo_max_occupancy=0
+ALGORITHM_STEP_PASS name=weighted_sssp iteration=0
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_end
+SPINE_HW_ROUND_TIMING round=2 reader_ms=0.303329 compute_ms=0.31924 kernel_span_ms=0.31924
+SPINE_HOST_PHASE algorithm=0 prepare_ms=0.00119 upload_wall_ms=0.189886 arguments_ms=0.032061 kernel_wall_ms=0.359122 readback_wall_ms=0.161135 decode_ms=0.094533 active_record_capacity=16777216 active_records_used=1
+KERNEL_PAIR_RESULT algorithm=weighted SSSP iteration=1 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=8 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=8 owner_created=8 owner_retired=1 owner_reactivations=0 owner_queued=8 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=8 reactivation_fifo_max_occupancy=0
+ALGORITHM_STEP_PASS name=weighted_sssp iteration=1
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_end
+SPINE_HW_ROUND_TIMING round=3 reader_ms=0.359112 compute_ms=0.391662 kernel_span_ms=0.391662
+SPINE_HOST_PHASE algorithm=0 prepare_ms=0.00115 upload_wall_ms=0.189406 arguments_ms=0.031651 kernel_wall_ms=0.429294 readback_wall_ms=0.155194 decode_ms=0.100134 active_record_capacity=16777216 active_records_used=8
+KERNEL_PAIR_RESULT algorithm=weighted SSSP iteration=2 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=8 processed_edges=8 source_status=0 source_requests=8 dirty_count=8 owner_status=0 owner_credits=8 owner_created=8 owner_retired=8 owner_reactivations=0 owner_queued=8 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=8 reactivation_fifo_max_occupancy=0
+ALGORITHM_STEP_PASS name=weighted_sssp iteration=2
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=0 phase=output_migration_end
+SPINE_HW_ROUND_TIMING round=4 reader_ms=0.304079 compute_ms=0.33718 kernel_span_ms=0.33718
+SPINE_HOST_PHASE algorithm=0 prepare_ms=0.00089 upload_wall_ms=0.189856 arguments_ms=0.032381 kernel_wall_ms=0.375211 readback_wall_ms=0.148315 decode_ms=0.100793 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_RESULT algorithm=weighted SSSP iteration=3 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=0 processed_edges=0 source_status=0 source_requests=8 dirty_count=8 owner_status=0 owner_credits=0 owner_created=0 owner_retired=8 owner_reactivations=0 owner_queued=0 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=0
+ALGORITHM_STEP_PASS name=weighted_sssp iteration=3
+ALGORITHM_PASS name=weighted_sssp iterations=4
+PARTITIONED_ALGORITHM_PASS algorithm=weighted_sssp vertices=256 partitions=16 source=0 case=/data/chuxiao/checks/fpga-cycle-validation-20261107/inputs-sorted/dev_narrow/graph.txt:final dynamic_run=1 resident_update=1 logical_updates=1 physical_updates=1 baseline_level=2 baseline_hot_vertices=0 baseline_hot_edges=0 coverage=converged
+SPINE_HW_TIMING algorithm=weighted_sssp logical_updates=1 physical_updates=1 maintenance_input_ms=0.028691 maintenance_kernel_ms=0.133724 maintenance_output_ms=0.032931 maintenance_device_e2e_ms=0.195346 maintenance_setup_inclusive_ms=0.328601 iterations=4 input_migration_ms=0.456954 reader_ms=1.2648 compute_ms=1.38901 kernel_span_ms=1.38901 output_migration_ms=0.288138 device_e2e_ms=2.1341 setup_inclusive_ms=3.23306 host_dynamic_preparation_ms=0 dynamic_device_e2e_ms=2.32945 dynamic_kernel_ms=1.52274 dynamic_setup_inclusive_ms=3.56166 timing_scope=maintenance_plus_iterative_algorithm_excludes_static_graph_setup
