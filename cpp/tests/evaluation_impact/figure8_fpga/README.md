@@ -17,6 +17,12 @@ The source roots are `/data/chuxiao/worktrees/spine-hls-fig8-native` and
 are in [spine_source_pins.sha256](spine_source_pins.sha256) and
 [gr_source_pins.sha256](gr_source_pins.sha256). Spine uses the November 4
 setup-once implementation, not the older October 25 resident host binary.
+The pinned host has maintenance-only allocation/residency repairs: `active_bins`
+retains a valid ABI buffer but not the unused 512-MiB propagation spool. The
+bridge opts into deferred graph residency; the default resident-compute
+constructor path is unchanged. The committed production-host repair is
+`a72ecff` on `codex/fig8-native-spine-once` in the Spine HLS repository;
+the file hashes, rather than the earlier base revision alone, bind this build.
 Its bridge resets invocation bookkeeping only, never resident graph, metadata,
 family-directory, or dirty-generation contents. G retains its PMA and buffers.
 
@@ -32,8 +38,12 @@ For U updates, batch i is the chronological file-order interval
 `[floor(i*U/B), floor((i+1)*U/B))`, with `1 <= B <= U`; Spine sorts only after
 forming that window. The requested matrix is 4096 total updates in ten batches
 on AU/SU/WK/SO/PK, plus AU 131072 total in 10/100/1000 batches.
-Spine checks the largest batch, not total U, against `MAX_SORT_N` (131072 in
-the pinned image/build). Capacity or oracle failures must remain failures.
+Each logical batch is split chronologically into physical invocations of at
+most 8192 updates, before sorting. This bounds a single-family L0 output by
+8192 and the first L1 merge by 16384, rather than overflowing L1 with two
+13107-update batches. Every physical invocation's packing, DMA, launch and
+completion are charged to the same logical batch. `physical_launches` records
+the exact count. Capacity or oracle failures must remain failures.
 
 G defaults to four metadata replicas; `GRASU_SHARDED_METADATA_REPLICAS=1` is an
 explicit shared-table control, with no automatic fallback. Its initial PMA
@@ -73,14 +83,58 @@ untouched-PMA scan), requiring zero mismatches. Neither validates propagation.
 
 ## Bootstrap Policy And Execution
 
-Spine currently hard-codes minimum bootstrap level **L2**. The older selected
+The repaired host places the static initial graph at **L10**, leaving L0--L9
+for chronological updates. This is an explicit change from the failed V1
+host's L2 configuration, not a kernel change or a timing-boundary change.
+The current matrix uses at most 1000 physical invocations, below the 1024
+nonempty family commits required to carry into the static L10 slice.
+All classification, serialization and initial device residency remain timed.
+This configuration has finite update headroom; it is not a claim that an
+arbitrarily long run can avoid merging the static graph.
+
+The older selected
 [simulator L4 cohort](../../../../docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fresh_simulator/portable_fig8_headroom_v1/README.md)
-leaves lower levels free for carry headroom; it is not bootstrap-parity evidence
-for this host (and uses a shared-metadata G control). The older simulator L2 PK
-case exhausted a capacity-safe target at batch index 3. No L4 change is made
-here. A future host-only preload option could retain the kernel ABI, but must
-change classifier capacity, planner minimum and assignment bounds together and
-revalidate capacity/correctness; there is no current CLI option.
+is not bootstrap-parity evidence for this host. The new wrapper builds compact
+live payloads and initializes the family directory from those host payloads.
+It allocates the fixed device arenas directly and uploads live regions once,
+not an intermediate compact device image or empty address padding. Metadata
+offsets are patched before the fixed image is used. Allocation, patching and
+DMA remain timed. `graph_uploads=1`, `arena_allocate_ns` and `live_upload_ns`
+identify this path in raw logs; the historical `relocation_ns` field is their
+sum, not evidence of a second graph upload.
+Arena bounds include both initial live regions and every target reachable
+under the physical-launch budget; total edge count alone is not a valid bound
+on the highest carry level. CPU layout tests cover the address mapping and
+binary carry bounds before board execution.
+
+The maintenance-only scratch upload initializes every read-before-write word
+for the fixed vertex domain V: `ceil(V/128)` 128-bit dirty bitmap words are
+zeroed and `ceil(V/4)` family-directory words contain the old graph's family
+masks, including zeros for initially absent sources. Their fixed word offsets
+are unchanged. Dirty-list valid lanes and family buckets are written before
+consumption; padding lanes outside the published count are not inputs.
+Owner state is initialized by the existing lifecycle kernel, which writes
+its valid bitmap regions and control words without reading old device data.
+The full scratch and owner device allocations remain present. Per-launch
+input writes, metadata initialization, prefix DMA, lifecycle and waits are
+still charged. `SPINE_MAINT_SPARSE_INIT` records both prefix sizes and
+`owner_host_upload=0`. This optimization is restricted to maintenance setup;
+it does not permit later vertex-domain expansion or propagation to consume
+uninitialized scratch. See the delivered repair notes for the frozen kernel
+read/write source locations.
+
+The current maintenance-only path uses CPU staging for the update input and
+the two initialized prefixes, not a zeroed full scratch/owner shadow. Device
+allocations still use the full compiled scratch/owner sizes, independently of
+the CPU vector lengths. Scratch, owner and graph arenas have explicit aligned
+host backing allocated without full-array zeroing. Initial device residency uses
+`CONTENT_UNDEFINED`, never a transfer of uninitialized host contents. Required
+prefix writes and lifecycle initialization follow before any consumer. Patched,
+initialized metadata is host-bound and migrated once, after fixed graph
+placement; lifecycle has no metadata argument. `host_bound_scratch=1`,
+`metadata_uploads=1`, `compact_host_staging=1` and
+`uninitialized_host_backing=1` identify this implementation. The backing outlives
+the OpenCL buffers. These flags do not remove required initialization or timing.
 
 Board execution belongs to the bounded, lease-owning runner. Both require
 `ORIGINAL_R_LEASE_FD` and `XCL_DEVICE_INDEX`, plus `SPINE_EXPECT_BDF` or
@@ -115,7 +169,9 @@ Thus a valid fixed-layout address can exceed the compact host allocation.
 Simply resizing vectors is not a verified repair: fixed carry destinations
 can also overlap still-live compact initial slices.
 
-There is no established low-risk, one-option host fix for all four failures.
-L4 bootstrap alone addresses neither fixed L1 capacity nor compact/fixed-layout
-compatibility. No L4 option, v2 binary, kernel change, or speculative source fix
-was made for this diagnosis; the v1 executable sources and build remain frozen.
+These are retained V1 outcomes, not results of the repaired host. L4 bootstrap
+alone addresses neither fixed L1 capacity nor compact/fixed-layout
+compatibility. The repair addresses layout, physical invocation size and
+bootstrap headroom separately. The V1 executable, source archive and results
+remain frozen; repaired runs use fresh build/output directories and a separate
+delivery folder. A successful build is not a substitute for the final oracle.

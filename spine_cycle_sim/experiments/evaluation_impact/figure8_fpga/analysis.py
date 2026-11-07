@@ -45,6 +45,11 @@ def timing(text, arm, case):
     for key in ("batch_ns", "update_wall_ns"):
         if sum(int(batch[key]) for batch in batches) != result[key]:
             raise ValueError("per-batch timers do not sum to summary")
+    if "physical_launches" in summary:
+        launches = [int(batch.get("physical_launches", "0")) for batch in batches]
+        if min(launches) <= 0 or sum(launches) != int(summary["physical_launches"]):
+            raise ValueError("physical maintenance launches do not sum to summary")
+        result["physical_launches"] = sum(launches)
     result["updates_per_second"] = total * 1e9 / result["setup_inclusive_ns"]
     return dict(result, raw_summary=summary)
 

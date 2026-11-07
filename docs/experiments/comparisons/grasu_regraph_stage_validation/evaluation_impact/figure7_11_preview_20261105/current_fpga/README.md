@@ -1,5 +1,24 @@
 # Current FPGA Source Controls
 
+## Repaired FPGA Figure 8
+
+The [complete persistent update-only delivery](fig8_persistent_repaired_20261107/README.md)
+has eight correctness-checked, matched-clock pairs, one sample per arm.
+Spine wins all eight: 1.59x--8.19x across AU/SU/WK/SO/PK with ten batches,
+and 1.04x/1.19x/1.66x on AU with 131,072 updates in 10/100/1,000 batches.
+The narrow 1.04x observation has no repetition-based confidence interval.
+The [CSV](fig8_persistent_repaired_20261107/fig8_fpga.csv),
+[PNG](fig8_persistent_repaired_20261107/figures/fig8_fpga_update_throughput.png),
+raw receipts and source archive are in that folder. Its fixed-v9 host includes
+initial layout/upload and every physical call in timing, with explicit L10
+static placement and a finite 1,000-call scope. Earlier versions, including
+losses, remain in the [repair history](fig8_persistent_repair_history_20261107/README.md).
+The [opt-in host fix](https://github.com/jayfeather9/spine-dynamic-graph/commit/a72ecff)
+does not alter the default resident-compute constructor or FPGA kernel;
+these Fig. 8 repairs do not require a Fig. 7 rerun.
+
+## Figure 7 And Source Controls
+
 The [direct CC board run](cc_direct_board_v1/README.md) now supplies all eight
 correctness-checked pairs using the existing streaming image. Spine wins
 1.18x--26.61x on these insertion traces. Its

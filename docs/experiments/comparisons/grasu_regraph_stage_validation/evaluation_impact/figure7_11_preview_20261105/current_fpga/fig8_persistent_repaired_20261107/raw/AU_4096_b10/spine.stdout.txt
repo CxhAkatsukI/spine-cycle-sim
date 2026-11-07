@@ -1,0 +1,35 @@
+SPINE_DEVICE bdf=0000:82:00.1
+SPINE_MAINT_SPARSE_INIT vertices=515281 bitmap_words=4026 family_words=128821 owner_host_upload=0 host_bound_scratch=1 metadata_uploads=1 compact_host_staging=1 uninitialized_host_backing=1
+SPINE_HOST_MAINT_PHASE arguments_ms=0.028091 kernel_wall_ms=0.425023 readback_wall_ms=0.049102
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=0 updates=409 physical_launches=1 batch_ns=87773 update_wall_ns=453114 begin=0 end=409 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00366 kernel_wall_ms=1.34448 readback_wall_ms=0.039841
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=1 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=1 updates=410 physical_launches=1 batch_ns=72042 update_wall_ns=1348142 begin=409 end=819 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.002961 kernel_wall_ms=0.366541 readback_wall_ms=0.033881
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=2 updates=409 physical_launches=1 batch_ns=66872 update_wall_ns=369502 begin=819 end=1228 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00261 kernel_wall_ms=2.40535 readback_wall_ms=0.035591
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=2 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=3 updates=410 physical_launches=1 batch_ns=64452 update_wall_ns=2407956 begin=1228 end=1638 target_level=2 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00354 kernel_wall_ms=0.398612 readback_wall_ms=0.038372
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=4 updates=410 physical_launches=1 batch_ns=72443 update_wall_ns=402152 begin=1638 end=2048 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00292 kernel_wall_ms=1.29296 readback_wall_ms=0.036152
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=1 path=3 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=5 updates=409 physical_launches=1 batch_ns=69153 update_wall_ns=1295880 begin=2048 end=2457 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00274 kernel_wall_ms=0.33641 readback_wall_ms=0.033902
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=6 updates=410 physical_launches=1 batch_ns=67222 update_wall_ns=339150 begin=2457 end=2867 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.0027 kernel_wall_ms=4.40075 readback_wall_ms=0.038992
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=3 path=3 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=7 updates=409 physical_launches=1 batch_ns=66992 update_wall_ns=4403447 begin=2867 end=3276 target_level=3 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00348 kernel_wall_ms=0.342801 readback_wall_ms=0.037511
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=8 updates=410 physical_launches=1 batch_ns=79282 update_wall_ns=346281 begin=3276 end=3686 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00352 kernel_wall_ms=1.31856 readback_wall_ms=0.036232
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=1 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=9 updates=410 physical_launches=1 batch_ns=71722 update_wall_ns=1322081 begin=3686 end=4096 target_level=1 path=3
+SPINE_UPDATE_SETUP_BOOTSTRAP host_ns=65542438 migrate_ns=184131100 lifecycle_ns=4555883
+SPINE_PERSISTENT_LAYOUT fixed=1 relocation_ns=170669208 arena_allocate_ns=148661507 live_upload_ns=22007701 graph_uploads=1 bank_words=24807125
+SPINE_PERSISTENT_UPDATE status=PASS vertices=515281 bootstrap_level=10 initial_edges=390847 logical_updates=4096 batches=10 physical_launches=10 layout_ns=161301254 bootstrap_ns=424898629 batch_ns=717953 update_wall_ns=12687705 setup_inclusive_ns=599605541 checked_edges=394943

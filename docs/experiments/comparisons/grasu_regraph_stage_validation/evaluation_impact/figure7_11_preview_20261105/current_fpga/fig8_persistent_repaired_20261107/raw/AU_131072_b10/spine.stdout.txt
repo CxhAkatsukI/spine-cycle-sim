@@ -1,0 +1,55 @@
+SPINE_DEVICE bdf=0000:82:00.1
+SPINE_MAINT_SPARSE_INIT vertices=515281 bitmap_words=4026 family_words=128821 owner_host_upload=0 host_bound_scratch=1 metadata_uploads=1 compact_host_staging=1 uninitialized_host_backing=1
+SPINE_HOST_MAINT_PHASE arguments_ms=0.01662 kernel_wall_ms=3.91448 readback_wall_ms=0.056061
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00359 kernel_wall_ms=16.051 readback_wall_ms=0.043531
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=1 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=0 updates=13107 physical_launches=2 batch_ns=654891 update_wall_ns=19985688 begin=0 end=13107 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00355 kernel_wall_ms=3.8878 readback_wall_ms=0.037512
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00355 kernel_wall_ms=31.3695 readback_wall_ms=0.040271
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=2 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=1 updates=13107 physical_launches=2 batch_ns=656682 update_wall_ns=35264396 begin=13107 end=26214 target_level=2 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003461 kernel_wall_ms=4.06644 readback_wall_ms=0.037752
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00343 kernel_wall_ms=16.7597 readback_wall_ms=0.037081
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=1 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=2 updates=13107 physical_launches=2 batch_ns=653211 update_wall_ns=20833054 begin=26214 end=39321 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00338 kernel_wall_ms=4.46262 readback_wall_ms=0.035222
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003491 kernel_wall_ms=63.4247 readback_wall_ms=0.046591
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=3 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=3 updates=13107 physical_launches=2 batch_ns=665781 update_wall_ns=67894212 begin=39321 end=52428 target_level=3 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00465 kernel_wall_ms=4.25203 readback_wall_ms=0.039111
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00437 kernel_wall_ms=16.7296 readback_wall_ms=0.045971
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4916 physical_updates=4916 target_level=1 path=3 hot_edges=0 cold_edges=4916
+SPINE_PERSISTENT_BATCH batch=4 updates=13108 physical_launches=2 batch_ns=684912 update_wall_ns=20990629 begin=52428 end=65536 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00431 kernel_wall_ms=3.4362 readback_wall_ms=0.037131
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003501 kernel_wall_ms=31.6333 readback_wall_ms=0.042771
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=2 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=5 updates=13107 physical_launches=2 batch_ns=655821 update_wall_ns=35077352 begin=65536 end=78643 target_level=2 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00429 kernel_wall_ms=4.53168 readback_wall_ms=0.041741
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00449 kernel_wall_ms=18.2414 readback_wall_ms=0.044061
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=1 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=6 updates=13107 physical_launches=2 batch_ns=687751 update_wall_ns=22781896 begin=78643 end=91750 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00394 kernel_wall_ms=5.4491 readback_wall_ms=0.047222
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003181 kernel_wall_ms=128.961 readback_wall_ms=0.079973
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=4 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=7 updates=13107 physical_launches=2 batch_ns=809456 update_wall_ns=134417411 begin=91750 end=104857 target_level=4 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.01377 kernel_wall_ms=5.12445 readback_wall_ms=0.044212
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00424 kernel_wall_ms=20.0333 readback_wall_ms=0.049521
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4915 physical_updates=4915 target_level=1 path=3 hot_edges=0 cold_edges=4915
+SPINE_PERSISTENT_BATCH batch=8 updates=13107 physical_launches=2 batch_ns=708962 update_wall_ns=25175800 begin=104857 end=117964 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00454 kernel_wall_ms=5.68649 readback_wall_ms=0.047291
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8192 physical_updates=8192 target_level=0 path=2 hot_edges=0 cold_edges=8192
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00416 kernel_wall_ms=36.9667 readback_wall_ms=0.045392
+SPINE_DYNAMIC_MAINT_PASS logical_updates=4916 physical_updates=4916 target_level=2 path=3 hot_edges=0 cold_edges=4916
+SPINE_PERSISTENT_BATCH batch=9 updates=13108 physical_launches=2 batch_ns=651791 update_wall_ns=42661920 begin=117964 end=131072 target_level=2 path=3
+SPINE_UPDATE_SETUP_BOOTSTRAP host_ns=66606112 migrate_ns=125829342 lifecycle_ns=4507901
+SPINE_PERSISTENT_LAYOUT fixed=1 relocation_ns=193908080 arena_allocate_ns=170613058 live_upload_ns=23295022 graph_uploads=1 bank_words=24807125
+SPINE_PERSISTENT_UPDATE status=PASS vertices=515281 bootstrap_level=10 initial_edges=390847 logical_updates=131072 batches=10 physical_launches=20 layout_ns=155978518 bootstrap_ns=390851435 batch_ns=6829258 update_wall_ns=425082358 setup_inclusive_ns=978741569 checked_edges=521919

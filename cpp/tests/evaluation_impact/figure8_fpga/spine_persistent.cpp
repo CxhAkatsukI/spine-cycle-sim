@@ -1,5 +1,7 @@
 #include "spine_setup_once_bridge.hpp"
 #include "spine_persistent_input.hpp"
+#include "spine_persistent_schedule.hpp"
+#include "spine_persistent_bootstrap.hpp"
 
 #include <charconv>
 
@@ -10,7 +12,8 @@ static void persistent_usage(std::ostream &out, const char *binary) {
         << " <xclbin> --persistent-update --dynamic-graph <native.graph>"
            " --batches <N>\n"
         << "One pass; chronological floor(i*updates/N) batches; bootstrap once.\n"
-        << "Maintenance only, no propagation. Bootstrap minimum level: L2.\n"
+        << "Maintenance only, no propagation. Fixed carry layout; bootstrap L10.\n"
+        << "Logical batches use capacity-safe physical launches of <=8192 updates.\n"
         << "batch_ns includes host preparation and input DMA; update_wall_ns"
            " ends at kernel completion.\n"
         << "Input parsing, programming, status/graph readback, and oracle are"
@@ -36,39 +39,51 @@ static void run_persistent_update(const std::string &xclbin,
     require_update_setup_lease();
     const SetupInsertionBatch trace = read_persistent_insertion_trace(path, batches);
     const auto layout_start = std::chrono::steady_clock::now();
-    auto image = serialize_partitioned_hot_cold_graph_reference<AlignedVector<uint64_t>>(
-        build_compacted_hot_cold_reference(setup_baseline_workload(trace), nullptr),
-        PartitionedActiveBinFlat{});
+    size_t launch_budget = 0;
+    for (size_t index = 0; index < batches; ++index) {
+        const size_t begin = persistent_batch_boundary(index, trace.inserts.size(), batches);
+        const size_t end = persistent_batch_boundary(index + 1, trace.inserts.size(), batches);
+        launch_budget += persistent_schedule::spans(begin, end).size();
+    }
+    auto plan = build_persistent_graph_plan(
+        build_persistent_reference(trace), trace.inserts.size(), launch_budget, trace.vertices);
     const auto layout_end = std::chrono::steady_clock::now();
-    PersistentSpineRuntime runtime(xclbin, std::move(image), trace.vertices);
+    PersistentSpineRuntime runtime(xclbin, std::move(plan), trace.vertices);
     const int64_t layout_ns = runtime.elapsed_ns(layout_start, layout_end);
     const int64_t bootstrap_ns = runtime.setup_bootstrap_ns();
     int64_t batch_ns = 0, update_wall_ns = 0;
-    size_t consumed = 0;
+    size_t consumed = 0, physical_launches = 0;
     for (size_t index = 0; index < batches; ++index) {
-        const auto pack_start = std::chrono::steady_clock::now();
         const size_t begin = persistent_batch_boundary(index, trace.inserts.size(), batches);
         const size_t end = persistent_batch_boundary(index + 1, trace.inserts.size(), batches);
         require(begin == consumed && end > begin && end <= trace.inserts.size(),
                 "persistent chronological batch coverage is inconsistent");
-        std::vector<DynamicUpdate> updates(trace.inserts.begin() + begin,
-                                           trace.inserts.begin() + end);
-        // Establish chronological windows before sorting for the device ABI.
-        std::stable_sort(updates.begin(), updates.end(), [](const auto &lhs, const auto &rhs) {
-            return std::tie(lhs.src, lhs.dst, lhs.weight, lhs.diff) <
-                   std::tie(rhs.src, rhs.dst, rhs.weight, rhs.diff);
-        });
-        runtime.prepare_batch(updates);
-        const auto batch_ready = std::chrono::steady_clock::now();
-        const int64_t preparation_ns = runtime.elapsed_ns(pack_start, batch_ready);
-        const int64_t completion_ns = runtime.complete_batch();
+        int64_t preparation_ns = 0, completion_ns = 0;
+        size_t sublaunches = 0;
+        for (const auto span : persistent_schedule::spans(begin, end)) {
+            const auto pack_start = std::chrono::steady_clock::now();
+            std::vector<DynamicUpdate> updates(trace.inserts.begin() + span.begin,
+                                               trace.inserts.begin() + span.end);
+            // Establish chronological subwindows before sorting for the ABI.
+            std::stable_sort(updates.begin(), updates.end(), [](const auto &lhs, const auto &rhs) {
+                return std::tie(lhs.src, lhs.dst, lhs.weight, lhs.diff) <
+                       std::tie(rhs.src, rhs.dst, rhs.weight, rhs.diff);
+            });
+            runtime.prepare_batch(updates);
+            preparation_ns += runtime.elapsed_ns(
+                pack_start, std::chrono::steady_clock::now());
+            completion_ns += runtime.complete_batch();
+            ++physical_launches;
+            ++sublaunches;
+        }
         require(preparation_ns > 0 && completion_ns > 0,
                 "persistent batch timings must be positive");
         batch_ns += preparation_ns;
         update_wall_ns += completion_ns;
         consumed = end;
         std::cout << "SPINE_PERSISTENT_BATCH batch=" << index
-                  << " updates=" << updates.size()
+                  << " updates=" << end - begin
+                  << " physical_launches=" << sublaunches
                   << " batch_ns=" << preparation_ns
                   << " update_wall_ns=" << completion_ns
                   << " begin=" << begin << " end=" << end
@@ -82,8 +97,10 @@ static void run_persistent_update(const std::string &xclbin,
     const size_t checked_edges = runtime.validate_final_graph(trace);
     runtime.print_update_setup_bootstrap();
     std::cout << "SPINE_PERSISTENT_UPDATE status=PASS vertices=" << trace.vertices
+              << " bootstrap_level=" << kPersistentBootstrapLevel
               << " initial_edges=" << trace.old_edges.size()
               << " logical_updates=" << consumed << " batches=" << batches
+              << " physical_launches=" << physical_launches
               << " layout_ns=" << layout_ns << " bootstrap_ns=" << bootstrap_ns
               << " batch_ns=" << batch_ns << " update_wall_ns=" << update_wall_ns
               << " setup_inclusive_ns=" << layout_ns + bootstrap_ns + batch_ns + update_wall_ns

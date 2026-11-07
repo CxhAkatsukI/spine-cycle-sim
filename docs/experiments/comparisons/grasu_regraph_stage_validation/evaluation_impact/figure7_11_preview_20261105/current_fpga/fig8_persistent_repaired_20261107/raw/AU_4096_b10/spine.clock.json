@@ -1,0 +1,22 @@
+{
+  "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+  "binary": {
+    "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+    "bytes": 58375377
+  },
+  "driver_reported_mhz": [
+    150,
+    500,
+    450,
+    0
+  ],
+  "bdf": "0000:82:00.1",
+  "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+  "raw": {
+    "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/remaining-board/AU_4096_b10/spine.clock-raw.json",
+    "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+    "bytes": 94
+  },
+  "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+}

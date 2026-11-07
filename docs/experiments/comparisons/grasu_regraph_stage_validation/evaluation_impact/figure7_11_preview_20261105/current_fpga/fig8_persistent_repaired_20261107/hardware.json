@@ -1,0 +1,6 @@
+{
+  "spine_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+  "spine_image": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+  "gr_host": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+  "gr_image": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin"
+}

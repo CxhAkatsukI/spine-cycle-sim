@@ -3,7 +3,39 @@
 These are host-only builds. Do not run either positional CLI without the board
 runner's admission, exclusive lease and identity checks. `--help` is board-free.
 
-## Existing Receipts
+## Repaired Build
+
+The repaired host build is
+`/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build`.
+It uses the same compiler flags and frozen images, but the current fixed-layout,
+L10 bootstrap, bounded-arena and physical-schedule headers. The external
+production host's maintenance-only active-buffer, direct-residency and sparse
+scratch initialization and compact CPU-staging patches are pinned by SHA-256.
+Scratch, owner and graph arenas use explicitly allocated, aligned host backing,
+without zeroing or uploading the complete backing store. Required scratch
+prefixes are initialized separately; metadata is uploaded once after descriptor
+patching. Device capacities and all
+required initialization are unchanged. No FPGA kernel changes
+or routing are part of this repair.
+Both hosts and their exact dependency sets are indexed in `build.json` and
+`*/non_system_dependencies.sha256`; G's binary is unchanged from the earlier
+repair builds. Never rebuild over these receipts.
+
+From the simulator repository root, a fresh host-only rebuild and archive use:
+
+```sh
+module=spine_cycle_sim.experiments.evaluation_impact.figure8_fpga
+python3 -m "$module.rebuild" --previous-build /path/to/retained/build --output /new/build
+python3 -m "$module.sources" --build-root /new/build --output /new/host-sources.tar.gz
+```
+
+The CPU-only `test_spine_persistent_layout.cpp` uses the Spine compile/link
+flags below and `xcl2.o`, without board execution. It checks sparse relocated
+graph oracles, metadata, all 2048 occupancy masks, L10 bootstrap and vertex-bound
+arena sizing. Run it with a 4 GiB address-space limit. The schedule tests also
+run through `tests/test_figure8_fpga_schedule.py` without XRT headers.
+
+## Historical V1 Receipts
 
 Build root: `/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/build`.
 Spine's `spine/build_commands.txt` records the executed `-O3 -DNDEBUG` compile
@@ -23,12 +55,12 @@ production inputs. Normalize `..` and deduplicate aliases before hashing.
 Preserve the following relative trees, because production quoted includes and
 Spine's `../../src` include rely on their layout:
 
-- Spine: `tests/test_integration/{host_partitioned_algorithms_smoke.cpp,host_update_setup_once.hpp,host_split.hpp,host_resident_benchmark.hpp,xcl2.cpp,xcl2.hpp}`, `tests/test_integration/stubs/CL/cl_ext_xilinx.h`, and `src/spine_paper_architecture_contract.hpp`.
+- Spine: `tests/test_integration/{host_partitioned_algorithms_smoke.cpp,host_maintenance_backing.hpp,host_update_setup_once.hpp,host_split.hpp,host_resident_benchmark.hpp,xcl2.cpp,xcl2.hpp}`, `tests/test_integration/stubs/CL/cl_ext_xilinx.h`, and `src/spine_paper_architecture_contract.hpp`.
 - G: `tools/{sharded_k4_native_host.cpp,weighted_pma_native_host.cpp,sharded_cache_runtime.hpp,sharded_active_min_fixture.hpp}` and `include/{sharded_event_trace.hpp,weighted_pma_graph.hpp,weighted_pma_runtime_plan.hpp,weighted_pma_metadata_plan.hpp,weighted_pma_update_reference.hpp}`.
 
 The checked-in pin manifests hash those external files, not the local wrappers.
 Archive local wrapper hashes too; Spine's existing non-system manifest already
-includes its three local files. Preserve original absolute-path receipts and
+includes all local header dependencies. Preserve original absolute-path receipts and
 add a relative-path archive manifest; explicitly map old roots to new roots.
 Verify hashes before and after relocation. Rebuild to emit fresh dependency
 files and confirm no old checkout is silently included.

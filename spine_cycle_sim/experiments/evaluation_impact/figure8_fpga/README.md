@@ -34,19 +34,44 @@ module=spine_cycle_sim.experiments.evaluation_impact.figure8_fpga
 python3 -m "$module.inputs" --help
 python3 -m "$module.board" --help
 python3 -m "$module.sources" --help
+python3 -m "$module.rebuild" --help
+python3 -m "$module.merge" --help
 python3 -m "$module.delivery" --help
 python3 -m "$module.render" --data /path/to/fig8_fpga.csv --output /path/to/figures
 python3 -m unittest tests.test_figure8_fpga tests.test_figure8_fpga_sources
 ```
 
-The November 7 run binds shared G metadata (`--metadata-replicas 1`) consistently
-across the matrix and the native Spine L2 bootstrap. These are explicit policies,
+The original November 7 run binds shared G metadata (`--metadata-replicas 1`)
+consistently across the matrix and the native Spine L2 bootstrap. The repaired
+host uses fixed kernel-compatible addresses, L10 static bootstrap, capacity-safe
+physical invocations and a minimal unused active buffer. Shared G metadata and
+the measurement boundary are unchanged. Direct fixed-arena graph upload avoids
+temporary compact device residency; scratch DMA initializes the bitmap and
+directory prefixes for every vertex, with the owner initialized by lifecycle.
+Full device capacities are retained independently of compact CPU staging.
+Scratch, owner and graph arenas use aligned host backing without full-array
+zeroing; undefined-content residency is followed by every required prefix write
+and lifecycle initialization. Patched, initialized metadata uploads once.
+All required initialization remains timed. See the native wrappers' README for
+the finite carry headroom and allocation bounds. These are explicit policies,
 not claims of cycle calibration to the older L4 simulator figure. Source/image
 identities, exact execution commands, clocks, per-batch raw logs and both timing
 components are retained with the delivery, under the existing Figures 7--11
 handoff directory.
 
-The eight-pair attempt completed with four valid pairs and four Spine failures.
+The original eight-pair attempt completed with four valid pairs and four Spine failures.
 Its owning handoff is
 `docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/fig8_persistent_once_20261107/`.
 Failed pairs are explicit missing timings, not simulator replacements.
+This folder remains frozen. Repaired deliveries go in a new sibling folder;
+partial campaigns may be merged only with disjoint cases and identical input,
+host, image, timing and resource configuration. Source journals and raw logs
+remain byte-identical, with no selection among retries.
+
+The repaired fixed-v9 campaign completes all eight pairs with both final
+oracles passing; Spine wins every measured pair (1.04x--8.19x). Its one-sample
+results, clocks, source archive and raw logs are in
+`docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/current_fpga/fig8_persistent_repaired_20261107/`.
+The sibling `fig8_persistent_repair_history_20261107/` retains the preceding
+candidate failures and losses. Neither the earlier simulator policy nor
+Fig. 7's compute host is silently replaced by this maintenance-only repair.

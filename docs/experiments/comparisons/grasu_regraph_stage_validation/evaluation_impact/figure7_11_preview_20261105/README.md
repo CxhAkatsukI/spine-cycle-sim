@@ -14,7 +14,21 @@ contains the [crossover figure](affected_fraction_fpga_20261107/handoff/figures/
 all attempted points, raw logs and a source zip. It is separate from the frozen
 Fig. 7--11 archive above; no existing measurements have been replaced.
 
-**FPGA Fig. 8 attempt:** the [November 7 one-pass supplement](current_fpga/fig8_persistent_once_20261107/README.md)
+**Repaired FPGA Fig. 8:** the [complete November 7 delivery](current_fpga/fig8_persistent_repaired_20261107/README.md)
+contains all eight valid pairs, with one sample per arm and no averaging.
+Spine wins the five ten-batch dataset cases by 1.59x/2.07x/3.31x/8.19x/3.20x
+(AU/SU/WK/SO/PK), and the AU 131K sweep by 1.04x/1.19x/1.66x
+(10/100/1,000 batches). The 1.04x point is a narrow observed single-sample
+win, not a statistical guarantee. The [CSV](current_fpga/fig8_persistent_repaired_20261107/fig8_fpga.csv),
+[preview](current_fpga/fig8_persistent_repaired_20261107/figures/fig8_fpga_update_throughput.png),
+raw logs and frozen host sources are colocated. This is update-only FPGA
+timing, including initial layout/upload and per-batch host/DMA/launch/wait,
+not convergence latency or simulator calibration. Fixed carry addresses,
+L10 static placement and bounded physical launches are explicit policies;
+the [repair history](current_fpga/fig8_persistent_repair_history_20261107/README.md)
+retains earlier failures and losses. Fig. 7 and the paper are unchanged.
+
+**Earlier FPGA Fig. 8 attempt:** the [original November 7 supplement](current_fpga/fig8_persistent_once_20261107/README.md)
 contains eight attempted pairs without warmups or averaging, four valid
 timing pairs and four Spine failures. AU favors G; SU/WK/SO favor Spine.
 PK and the AU batch sweep fail, so this is not a completed valid FPGA

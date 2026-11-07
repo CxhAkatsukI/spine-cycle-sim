@@ -39,6 +39,16 @@ class Figure8FPGA(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 analysis.timing(text, "spine", self.case)
 
+    def test_capacity_safe_physical_launches_are_not_hidden(self):
+        text = (self.text().replace("batch=0", "batch=0 physical_launches=1")
+                .replace("batch=1", "batch=1 physical_launches=2")
+                .replace("batches=2", "batches=2 physical_launches=3"))
+        self.assertEqual(analysis.timing(text, "spine", self.case)["physical_launches"], 3)
+        for bad in (text.replace("physical_launches=3", "physical_launches=2"),
+                    text.replace("batch=0 physical_launches=1", "batch=0")):
+            with self.assertRaises(ValueError):
+                analysis.timing(bad, "spine", self.case)
+
     def test_stream_conversion_preserves_ids_weights_and_order(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

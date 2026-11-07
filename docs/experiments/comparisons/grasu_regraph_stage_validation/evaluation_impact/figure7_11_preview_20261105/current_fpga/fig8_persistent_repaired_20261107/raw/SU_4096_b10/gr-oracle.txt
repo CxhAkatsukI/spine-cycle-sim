@@ -1,0 +1,1 @@
+status=PASS touched_segments=2011 checked_words=32176 mismatches=0 pma_mismatches=0 batches=10 metadata_replicas=1

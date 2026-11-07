@@ -1,0 +1,4 @@
+# Preserve byte-for-byte hardware receipts, including CRLF CSV and tool output.
+fig8_fpga.csv -text whitespace=cr-at-eol
+raw/** -text -whitespace
+setup_failure_card1/** -text -whitespace

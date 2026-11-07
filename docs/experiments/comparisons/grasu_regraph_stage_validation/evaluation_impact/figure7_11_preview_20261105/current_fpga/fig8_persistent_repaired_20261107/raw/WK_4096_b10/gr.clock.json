@@ -1,0 +1,22 @@
+{
+  "uuid": "ce448d31-3f6a-3e39-eafa-05b6cc9b2946",
+  "binary": {
+    "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+    "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+    "bytes": 79628218
+  },
+  "driver_reported_mhz": [
+    150,
+    500,
+    450,
+    0
+  ],
+  "bdf": "0000:82:00.1",
+  "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+  "raw": {
+    "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/remaining-board/WK_4096_b10/gr.clock-raw.json",
+    "sha256": "48e7f15b0b0ec2423da16980d9c4b8c5ba0adc1ea9dfd684764bedff322fc929",
+    "bytes": 94
+  },
+  "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+}

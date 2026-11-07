@@ -1,0 +1,972 @@
+{
+  "status": "COMPLETED",
+  "boundary": "initial native layout and graph upload once, then chronological batch packing, upload and update maintenance through completion; excludes parsing, FPGA programming and final validation readback; no algorithm propagation",
+  "samples_per_arm": 1,
+  "warmups": 0,
+  "timing_source": "FPGA_MEASURED",
+  "metadata_replicas": 1,
+  "bdf": "0000:82:00.1",
+  "device": 0,
+  "inputs": {
+    "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/inputs.json",
+    "sha256": "a261e5df97a19fc070fe263a318bf84fdaaa5b75242904803df61840e2b8a37a",
+    "bytes": 10298
+  },
+  "hardware": {
+    "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/hardware.json",
+    "sha256": "8b0042f11eada3c00d43e43af0e4ba9ebc79c749aec95c5608fbd9b030f26e42",
+    "bytes": 497
+  },
+  "memory_gib": 32,
+  "memory_profile": "zfs-arc-clean-half-background5-v1",
+  "cases": [
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 131072,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "name": "AU_131072_b10",
+      "dataset": "AU",
+      "batches": 10,
+      "panel": "b",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      },
+      "status": "MEASURED",
+      "arms": {
+        "gr": {
+          "status": "PASS",
+          "started_unix": 1794020921.0988622,
+          "command": [
+            "/usr/bin/taskset",
+            "-c",
+            "124,125",
+            "/usr/bin/env",
+            "-u",
+            "XCL_EMULATION_MODE",
+            "-u",
+            "GRASU_RESIDENT_BATCH_WALL",
+            "XCL_DEVICE_INDEX=0",
+            "SPINE_EXPECT_BDF=0000:82:00.1",
+            "GRASU_REGRAPH_EXPECT_BDF=0000:82:00.1",
+            "GRASU_UPDATE_REPEATS=1",
+            "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+            "GRASU_SHARDED_METADATA_REPLICAS=1",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+            "--persistent-update",
+            "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+            "10",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/gr-oracle.txt"
+          ],
+          "stdout": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/gr.stdout.txt",
+            "sha256": "a2e33a7af3cc07dcf4a77440f15fec18ba632e32688bbb904f1428eb0e107060",
+            "bytes": 2549
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          },
+          "memory_guard": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "admission": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 90497200128,
+              "mem_free_bytes": 69056327680,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 72453566080,
+                "mru_evictable_data": 15252120064,
+                "mfu_evictable_data": 42629058048
+              },
+              "clean_evictable_bytes": 57881178112,
+              "discount_denominator": 2,
+              "effective_available_bytes": 97996916736,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "status": "COMPLETED",
+            "child_started": true,
+            "prelaunch": {
+              "status": "ADMITTED",
+              "child_started": false,
+              "checks": 1,
+              "waited_seconds": 0,
+              "pressure_checks": 0,
+              "last_observation": {
+                "profile": "zfs-arc-clean-half-background5-v1",
+                "mem_available_bytes": 90497200128,
+                "mem_free_bytes": 69056327680,
+                "arc": {
+                  "c_min": 8440012672,
+                  "size": 72453566080,
+                  "mru_evictable_data": 15252120064,
+                  "mfu_evictable_data": 42629058048
+                },
+                "clean_evictable_bytes": 57881178112,
+                "discount_denominator": 2,
+                "effective_available_bytes": 97996916736,
+                "pressure_avg10": {
+                  "some": 0.0,
+                  "full": 0.0
+                },
+                "pressure_ok": true,
+                "pressure_limits_avg10": {
+                  "some": 10,
+                  "full": 5
+                }
+              }
+            },
+            "minimum_effective_available_bytes": 97516074496,
+            "maximum_pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "checks": 7,
+            "last_observation": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 90017218560,
+              "mem_free_bytes": 68574961664,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 72445378680,
+                "mru_evictable_data": 15253036544,
+                "mfu_evictable_data": 42629189120
+              },
+              "clean_evictable_bytes": 57882225664,
+              "discount_denominator": 2,
+              "effective_available_bytes": 97516074496,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "pressure_grace_seconds": 10,
+            "maximum_consecutive_pressure_seconds": 0,
+            "pressured_checks": 0
+          },
+          "maximum_child_rss_kib_so_far": 604460,
+          "timing": {
+            "layout_ns": 777107366,
+            "upload_ns": 211867225,
+            "batch_ns": 8489626,
+            "update_wall_ns": 24389666,
+            "setup_inclusive_ns": 1021853883,
+            "updates_per_second": 128268.82803947813,
+            "raw_summary": {
+              "status": "PASS",
+              "vertices": "515281",
+              "initial_edges": "390847",
+              "logical_updates": "131072",
+              "batches": "10",
+              "layout_ns": "777107366",
+              "upload_ns": "211867225",
+              "batch_ns": "8489626",
+              "update_wall_ns": "24389666",
+              "setup_inclusive_ns": "1021853883",
+              "pma_mismatches": "0",
+              "metadata_replicas": "1",
+              "trace_aware_pma": "1",
+              "repeats": "1",
+              "touched_segments": "44812",
+              "checked_words": "716992"
+            }
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/gr.clock.json",
+              "sha256": "1fb068345f67807ec6a1fec115b2d5a23554a67a3d11bae5b8db2e3ad8d340f5",
+              "bytes": 824
+            },
+            "expected": {
+              "uuid": "ce448d31-3f6a-3e39-eafa-05b6cc9b2946",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+                "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+                "bytes": 79628218
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/gr.xclbin-info.txt",
+                "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+                "bytes": 112291
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "clock": {
+            "uuid": "ce448d31-3f6a-3e39-eafa-05b6cc9b2946",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+              "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+              "bytes": 79628218
+            },
+            "driver_reported_mhz": [
+              150,
+              500,
+              450,
+              0
+            ],
+            "bdf": "0000:82:00.1",
+            "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+            "raw": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/gr.clock-raw.json",
+              "sha256": "48e7f15b0b0ec2423da16980d9c4b8c5ba0adc1ea9dfd684764bedff322fc929",
+              "bytes": 94
+            },
+            "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+          },
+          "process_seconds_including_parse_program_check": 5.770491123199463
+        },
+        "spine": {
+          "status": "PASS",
+          "started_unix": 1794020926.869666,
+          "command": [
+            "/usr/bin/taskset",
+            "-c",
+            "124,125",
+            "/usr/bin/env",
+            "-u",
+            "XCL_EMULATION_MODE",
+            "-u",
+            "GRASU_RESIDENT_BATCH_WALL",
+            "XCL_DEVICE_INDEX=0",
+            "SPINE_EXPECT_BDF=0000:82:00.1",
+            "GRASU_REGRAPH_EXPECT_BDF=0000:82:00.1",
+            "GRASU_UPDATE_REPEATS=1",
+            "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+            "GRASU_SHARDED_METADATA_REPLICAS=1",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+            "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+            "--persistent-update",
+            "--dynamic-graph",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+            "--batches",
+            "10"
+          ],
+          "stdout": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/spine.stdout.txt",
+            "sha256": "bb8be256959a65cd694a8e682a9d43bc927c28004bd2435e40b2a0df346bdeb0",
+            "bytes": 6446
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          },
+          "memory_guard": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "admission": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 90660585472,
+              "mem_free_bytes": 69218054144,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 72448849616,
+                "mru_evictable_data": 15253085696,
+                "mfu_evictable_data": 42629188096
+              },
+              "clean_evictable_bytes": 57882273792,
+              "discount_denominator": 2,
+              "effective_available_bytes": 98159191040,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "status": "COMPLETED",
+            "child_started": true,
+            "prelaunch": {
+              "status": "ADMITTED",
+              "child_started": false,
+              "checks": 1,
+              "waited_seconds": 0,
+              "pressure_checks": 0,
+              "last_observation": {
+                "profile": "zfs-arc-clean-half-background5-v1",
+                "mem_available_bytes": 90660585472,
+                "mem_free_bytes": 69218054144,
+                "arc": {
+                  "c_min": 8440012672,
+                  "size": 72448849616,
+                  "mru_evictable_data": 15253085696,
+                  "mfu_evictable_data": 42629188096
+                },
+                "clean_evictable_bytes": 57882273792,
+                "discount_denominator": 2,
+                "effective_available_bytes": 98159191040,
+                "pressure_avg10": {
+                  "some": 0.0,
+                  "full": 0.0
+                },
+                "pressure_ok": true,
+                "pressure_limits_avg10": {
+                  "some": 10,
+                  "full": 5
+                }
+              }
+            },
+            "minimum_effective_available_bytes": 96848800256,
+            "maximum_pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "checks": 13,
+            "last_observation": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 89351745536,
+              "mem_free_bytes": 67907653632,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 73074745336,
+                "mru_evictable_data": 15253115904,
+                "mfu_evictable_data": 42629177344
+              },
+              "clean_evictable_bytes": 57882293248,
+              "discount_denominator": 2,
+              "effective_available_bytes": 96848800256,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "pressure_grace_seconds": 10,
+            "maximum_consecutive_pressure_seconds": 0,
+            "pressured_checks": 0
+          },
+          "maximum_child_rss_kib_so_far": 1287692,
+          "timing": {
+            "layout_ns": 155978518,
+            "bootstrap_ns": 390851435,
+            "batch_ns": 6829258,
+            "update_wall_ns": 425082358,
+            "setup_inclusive_ns": 978741569,
+            "physical_launches": 20,
+            "updates_per_second": 133918.9058189476,
+            "raw_summary": {
+              "status": "PASS",
+              "vertices": "515281",
+              "bootstrap_level": "10",
+              "initial_edges": "390847",
+              "logical_updates": "131072",
+              "batches": "10",
+              "physical_launches": "20",
+              "layout_ns": "155978518",
+              "bootstrap_ns": "390851435",
+              "batch_ns": "6829258",
+              "update_wall_ns": "425082358",
+              "setup_inclusive_ns": "978741569",
+              "checked_edges": "521919"
+            }
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/spine.clock.json",
+              "sha256": "724e28432e9e41fabeca2700c45a3043ddb7c6685f0e54e8e850fa02f55c2918",
+              "bytes": 810
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "clock": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "driver_reported_mhz": [
+              150,
+              500,
+              450,
+              0
+            ],
+            "bdf": "0000:82:00.1",
+            "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+            "raw": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b10/spine.clock-raw.json",
+              "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+              "bytes": 94
+            },
+            "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+          },
+          "process_seconds_including_parse_program_check": 11.667868375778198
+        }
+      },
+      "order": [
+        "gr",
+        "spine"
+      ],
+      "speedup": 1.0440487206894142
+    },
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 131072,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "name": "AU_131072_b100",
+      "dataset": "AU",
+      "batches": 100,
+      "panel": "b",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      },
+      "status": "MEASURED",
+      "arms": {
+        "spine": {
+          "status": "PASS",
+          "started_unix": 1794020938.5454211,
+          "command": [
+            "/usr/bin/taskset",
+            "-c",
+            "124,125",
+            "/usr/bin/env",
+            "-u",
+            "XCL_EMULATION_MODE",
+            "-u",
+            "GRASU_RESIDENT_BATCH_WALL",
+            "XCL_DEVICE_INDEX=0",
+            "SPINE_EXPECT_BDF=0000:82:00.1",
+            "GRASU_REGRAPH_EXPECT_BDF=0000:82:00.1",
+            "GRASU_UPDATE_REPEATS=1",
+            "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+            "GRASU_SHARDED_METADATA_REPLICAS=1",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+            "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+            "--persistent-update",
+            "--dynamic-graph",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+            "--batches",
+            "100"
+          ],
+          "stdout": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/spine.stdout.txt",
+            "sha256": "897c8541463a8cc5769d14378992eb2aec82ba747266f1bc5fb4baaec4d35b86",
+            "bytes": 36641
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/spine.stderr.txt",
+            "sha256": "28daccf5c33f46a828a3e1dc8bd2fa8e3a1e7ad766d740e130a772d7cec04dcf",
+            "bytes": 25
+          },
+          "memory_guard": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "admission": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 90530394112,
+              "mem_free_bytes": 69084618752,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 73100107200,
+                "mru_evictable_data": 15253124096,
+                "mfu_evictable_data": 42629177344
+              },
+              "clean_evictable_bytes": 57882301440,
+              "discount_denominator": 2,
+              "effective_available_bytes": 98025769472,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "status": "COMPLETED",
+            "child_started": true,
+            "prelaunch": {
+              "status": "ADMITTED",
+              "child_started": false,
+              "checks": 1,
+              "waited_seconds": 0,
+              "pressure_checks": 0,
+              "last_observation": {
+                "profile": "zfs-arc-clean-half-background5-v1",
+                "mem_available_bytes": 90530394112,
+                "mem_free_bytes": 69084618752,
+                "arc": {
+                  "c_min": 8440012672,
+                  "size": 73100107200,
+                  "mru_evictable_data": 15253124096,
+                  "mfu_evictable_data": 42629177344
+                },
+                "clean_evictable_bytes": 57882301440,
+                "discount_denominator": 2,
+                "effective_available_bytes": 98025769472,
+                "pressure_avg10": {
+                  "some": 0.0,
+                  "full": 0.0
+                },
+                "pressure_ok": true,
+                "pressure_limits_avg10": {
+                  "some": 10,
+                  "full": 5
+                }
+              }
+            },
+            "minimum_effective_available_bytes": 96864491264,
+            "maximum_pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "checks": 4,
+            "last_observation": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 89377161216,
+              "mem_free_bytes": 67923357696,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 73169453592,
+                "mru_evictable_data": 15253091328,
+                "mfu_evictable_data": 42629175808
+              },
+              "clean_evictable_bytes": 57882267136,
+              "discount_denominator": 2,
+              "effective_available_bytes": 96864491264,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "pressure_grace_seconds": 10,
+            "maximum_consecutive_pressure_seconds": 0,
+            "pressured_checks": 0
+          },
+          "maximum_child_rss_kib_so_far": 1586980,
+          "timing": {
+            "layout_ns": 165473586,
+            "bootstrap_ns": 375317717,
+            "batch_ns": 10653627,
+            "update_wall_ns": 589865081,
+            "setup_inclusive_ns": 1141310011,
+            "physical_launches": 100,
+            "updates_per_second": 114843.46823976119,
+            "raw_summary": {
+              "status": "PASS",
+              "vertices": "515281",
+              "bootstrap_level": "10",
+              "initial_edges": "390847",
+              "logical_updates": "131072",
+              "batches": "100",
+              "physical_launches": "100",
+              "layout_ns": "165473586",
+              "bootstrap_ns": "375317717",
+              "batch_ns": "10653627",
+              "update_wall_ns": "589865081",
+              "setup_inclusive_ns": "1141310011",
+              "checked_edges": "521919"
+            }
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/spine.clock.json",
+              "sha256": "a9d91ea1a9edbd1cf217a48f7288890369565b55f45f26d2ce4e4c71d64c9efc",
+              "bytes": 811
+            },
+            "expected": {
+              "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+              "binary": {
+                "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+                "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+                "bytes": 58375377
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/spine.xclbin-info.txt",
+                "sha256": "2bdebac63657e93527f4d620536780f58158e7d71d30ca3448d7e962c08e057f",
+                "bytes": 30574
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "clock": {
+            "uuid": "2993e806-2fcc-87e2-2147-9c7dab11f03b",
+            "binary": {
+              "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+              "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+              "bytes": 58375377
+            },
+            "driver_reported_mhz": [
+              150,
+              500,
+              450,
+              0
+            ],
+            "bdf": "0000:82:00.1",
+            "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+            "raw": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/spine.clock-raw.json",
+              "sha256": "74066ec59fa495cad5dda7efd3413b63b6f7fb432bf9a42f64fbac7b8cbbaf60",
+              "bytes": 94
+            },
+            "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+          },
+          "process_seconds_including_parse_program_check": 3.0172278881073
+        },
+        "gr": {
+          "status": "PASS",
+          "started_unix": 1794020941.5631423,
+          "command": [
+            "/usr/bin/taskset",
+            "-c",
+            "124,125",
+            "/usr/bin/env",
+            "-u",
+            "XCL_EMULATION_MODE",
+            "-u",
+            "GRASU_RESIDENT_BATCH_WALL",
+            "XCL_DEVICE_INDEX=0",
+            "SPINE_EXPECT_BDF=0000:82:00.1",
+            "GRASU_REGRAPH_EXPECT_BDF=0000:82:00.1",
+            "GRASU_UPDATE_REPEATS=1",
+            "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+            "GRASU_SHARDED_METADATA_REPLICAS=1",
+            "GRASU_SHARDED_EVENT_TRACE=0",
+            "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+            "--persistent-update",
+            "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+            "100",
+            "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/gr-oracle.txt"
+          ],
+          "stdout": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/gr.stdout.txt",
+            "sha256": "ef5ee5ddce2f75b313339491f2fb341f0248edd26eb3ab1d304fef129c42bc16",
+            "bytes": 18041
+          },
+          "stderr": {
+            "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/gr.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          },
+          "memory_guard": {
+            "profile": "zfs-arc-clean-half-background5-v1",
+            "admission": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 90443079680,
+              "mem_free_bytes": 68989194240,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 73207166848,
+                "mru_evictable_data": 15253083136,
+                "mfu_evictable_data": 42629183488
+              },
+              "clean_evictable_bytes": 57882266624,
+              "discount_denominator": 2,
+              "effective_available_bytes": 97930327552,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "status": "COMPLETED",
+            "child_started": true,
+            "prelaunch": {
+              "status": "ADMITTED",
+              "child_started": false,
+              "checks": 1,
+              "waited_seconds": 0,
+              "pressure_checks": 0,
+              "last_observation": {
+                "profile": "zfs-arc-clean-half-background5-v1",
+                "mem_available_bytes": 90443079680,
+                "mem_free_bytes": 68989194240,
+                "arc": {
+                  "c_min": 8440012672,
+                  "size": 73207166848,
+                  "mru_evictable_data": 15253083136,
+                  "mfu_evictable_data": 42629183488
+                },
+                "clean_evictable_bytes": 57882266624,
+                "discount_denominator": 2,
+                "effective_available_bytes": 97930327552,
+                "pressure_avg10": {
+                  "some": 0.0,
+                  "full": 0.0
+                },
+                "pressure_ok": true,
+                "pressure_limits_avg10": {
+                  "some": 10,
+                  "full": 5
+                }
+              }
+            },
+            "minimum_effective_available_bytes": 96518296576,
+            "maximum_pressure_avg10": {
+              "some": 0.0,
+              "full": 0.0
+            },
+            "checks": 21,
+            "last_observation": {
+              "profile": "zfs-arc-clean-half-background5-v1",
+              "mem_available_bytes": 89052594176,
+              "mem_free_bytes": 67577131008,
+              "arc": {
+                "c_min": 8440012672,
+                "size": 73651590512,
+                "mru_evictable_data": 15253160960,
+                "mfu_evictable_data": 42629170176
+              },
+              "clean_evictable_bytes": 57882331136,
+              "discount_denominator": 2,
+              "effective_available_bytes": 96518296576,
+              "pressure_avg10": {
+                "some": 0.0,
+                "full": 0.0
+              },
+              "pressure_ok": true,
+              "pressure_limits_avg10": {
+                "some": 10,
+                "full": 5
+              }
+            },
+            "pressure_grace_seconds": 10,
+            "maximum_consecutive_pressure_seconds": 0,
+            "pressured_checks": 0
+          },
+          "maximum_child_rss_kib_so_far": 1586980,
+          "timing": {
+            "layout_ns": 789716330,
+            "upload_ns": 302452398,
+            "batch_ns": 72521618,
+            "update_wall_ns": 195316357,
+            "setup_inclusive_ns": 1360006703,
+            "updates_per_second": 96375.99558213355,
+            "raw_summary": {
+              "status": "PASS",
+              "vertices": "515281",
+              "initial_edges": "390847",
+              "logical_updates": "131072",
+              "batches": "100",
+              "layout_ns": "789716330",
+              "upload_ns": "302452398",
+              "batch_ns": "72521618",
+              "update_wall_ns": "195316357",
+              "setup_inclusive_ns": "1360006703",
+              "pma_mismatches": "0",
+              "metadata_replicas": "1",
+              "trace_aware_pma": "1",
+              "repeats": "1",
+              "touched_segments": "44812",
+              "checked_words": "716992"
+            }
+          },
+          "clock_evidence": {
+            "record": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/gr.clock.json",
+              "sha256": "f6d4252e61aa1bcc30159843247078e027b402886cf443d03df7381bbdd13686",
+              "bytes": 825
+            },
+            "expected": {
+              "uuid": "ce448d31-3f6a-3e39-eafa-05b6cc9b2946",
+              "binary": {
+                "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+                "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+                "bytes": 79628218
+              },
+              "info": {
+                "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/gr.xclbin-info.txt",
+                "sha256": "618995eae103b307cbb322fc79bb552a47a8c8c391de77331e840de6e44516cd",
+                "bytes": 112291
+              },
+              "tool": {
+                "path": "/opt/xilinx/xrt/bin/xclbinutil",
+                "sha256": "acb22cc1517449a2ceca1c7adcad443eeda78ff681db36eb2b63466bf0201e89",
+                "bytes": 1294
+              }
+            }
+          },
+          "clock": {
+            "uuid": "ce448d31-3f6a-3e39-eafa-05b6cc9b2946",
+            "binary": {
+              "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+              "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+              "bytes": 79628218
+            },
+            "driver_reported_mhz": [
+              150,
+              500,
+              450,
+              0
+            ],
+            "bdf": "0000:82:00.1",
+            "sysfs_clock_source": "/sys/bus/pci/devices/0000:82:00.1/icap.u.22020097/clock_freqs",
+            "raw": {
+              "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/pilot-board/AU_131072_b100/gr.clock-raw.json",
+              "sha256": "48e7f15b0b0ec2423da16980d9c4b8c5ba0adc1ea9dfd684764bedff322fc929",
+              "bytes": 94
+            },
+            "boundary": "queried after host exit, under the same exclusive board lease; not timed"
+          },
+          "process_seconds_including_parse_program_check": 20.04331398010254
+        }
+      },
+      "order": [
+        "spine",
+        "gr"
+      ],
+      "speedup": 1.1916190078875948
+    }
+  ],
+  "artifacts": {
+    "spine_host": {
+      "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/spine/spine_persistent.host",
+      "sha256": "555b97ed0cbb5cbee6548561997e27e6a40c59b1bd88163ceb50c4629e25b4d5",
+      "bytes": 370360
+    },
+    "spine_image": {
+      "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+      "bytes": 58375377
+    },
+    "gr_host": {
+      "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v9/build/gr/gr_persistent",
+      "sha256": "d3280793ee4c50748b0919e3761cc55f922adc9a4b12a116b9e41deb8797e306",
+      "bytes": 312112
+    },
+    "gr_image": {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+      "bytes": 79628218
+    }
+  },
+  "admission": {
+    "admitted": true,
+    "available_bytes": 98036208640,
+    "required_bytes": 68719476736,
+    "reservations": [],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/fig8-repair-v9-pilot-service.service",
+      "limits": {
+        "memory.max": "34359738368",
+        "memory.high": "32212254720",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 90534019072,
+      "mem_free_bytes": 69093175296,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 72445119544,
+        "mru_evictable_data": 15252119040,
+        "mfu_evictable_data": 42633947648
+      },
+      "clean_evictable_bytes": 57886066688,
+      "discount_denominator": 2,
+      "effective_available_bytes": 98036208640,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    }
+  },
+  "memory_peak_bytes": 1642455040,
+  "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n"
+}

@@ -1,0 +1,237 @@
+{
+  "status": "READY",
+  "cases": [
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 4096,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u4096.graph",
+        "sha256": "e8f1cf761783b96361c19e4a137414309fc5ed19753859cc1adf2e33aaf53e39",
+        "bytes": 6014962
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_askubuntu/updates/directed/insert_u4096.slice",
+        "sha256": "f661dda832eb7e973f1a3a6ac61c6e8cad1a65da8df93bed0eef877ec026eda7",
+        "bytes": 68600
+      },
+      "name": "AU_4096_b10",
+      "dataset": "AU",
+      "batches": 10,
+      "panel": "a",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      }
+    },
+    {
+      "vertices": 567316,
+      "initial_edges": 616118,
+      "updates": 4096,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/SU_u4096.graph",
+        "sha256": "e2d270ae3f150a677498600013c8a0288ab87b74431eb3f8f47d165d9a7a462c",
+        "bytes": 9400666
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/graphs/directed_weighted.slice",
+        "sha256": "3afdd3088221d987dbbb0ac9ead992acc82b684cfab28ef235262e63b410ea4d",
+        "bytes": 10564917
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_superuser/updates/directed/insert_u4096.slice",
+        "sha256": "66a9dd9dffa2a57a56082245494db6706bd9dc9605587ad95ae17e1a59dd8243",
+        "bytes": 68264
+      },
+      "name": "SU_4096_b10",
+      "dataset": "SU",
+      "batches": 10,
+      "panel": "a",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/su/manifest.json",
+        "sha256": "6c5c8161fe3c3da06db24abc1a16eb157b39e3721366e6f5b95352fab75f2ed4",
+        "bytes": 1014
+      }
+    },
+    {
+      "vertices": 1140149,
+      "initial_edges": 1142352,
+      "updates": 4096,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/WK_u4096.graph",
+        "sha256": "f0b16c55006c88150ce8253942a737304397cc40a73b6b4b6bb1b455aed212c6",
+        "bytes": 15608715
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/graphs/directed_weighted.slice",
+        "sha256": "90447ad9404c417f80a4192d88e1b38b360a80246a16e0257ba2bb6a7e66aef2",
+        "bytes": 17831515
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/wiki_talk_temporal/updates/directed/insert_u4096.slice",
+        "sha256": "7b0b4322569d9f51c362eb1779184b9f46f67eef5159af8d05c56933ef675ac9",
+        "bytes": 62195
+      },
+      "name": "WK_4096_b10",
+      "dataset": "WK",
+      "batches": 10,
+      "panel": "a",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/wk/manifest.json",
+        "sha256": "f57020642eae2bb199a3d98782ef17d4cbcf4772cc9376db0cd8c15ee7dbf829",
+        "bytes": 1030
+      }
+    },
+    {
+      "vertices": 6024271,
+      "initial_edges": 23724166,
+      "updates": 4096,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/SO_u4096.graph",
+        "sha256": "7ca1d2a13c41f7a8088cbfe2f8ba6f2423283f53a383b0696c8bb0c6211fd3d7",
+        "bytes": 411382911
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_stackoverflow/graphs/directed_weighted.slice",
+        "sha256": "8068d6382766d1421537d0e00b2bf9fc87d9d9fdffd4c3fa5a217bf7cde0340f",
+        "bytes": 458755313
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/sx_stackoverflow/updates/directed/insert_u4096.slice",
+        "sha256": "23b219ea7495ca4ec424ddd05fecd8391eac910f2783f7c7389eee75872efe09",
+        "bytes": 76216
+      },
+      "name": "SO_4096_b10",
+      "dataset": "SO",
+      "batches": 10,
+      "panel": "a",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/so/manifest.json",
+        "sha256": "88a785a683a27513d9f25758d1d1afed5a5160bdc85c09c9f774f1e5ae2b548f",
+        "bytes": 1025
+      }
+    },
+    {
+      "vertices": 1632803,
+      "initial_edges": 44603928,
+      "updates": 4096,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/PK_u4096.graph",
+        "sha256": "7302412388f0a2e36ca5417c3f12b1e4a8a60d4927b1f9b264b3098642bc9555",
+        "bytes": 745730987
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_pokec/graphs/directed_weighted.slice",
+        "sha256": "aa712bc484a68f587cacfa385da75ae0908ef71f3e05243b89d5cb84620671f8",
+        "bytes": 834864801
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/workloads/soc_pokec/updates/directed/insert_u4096.slice",
+        "sha256": "f156de9d5461e6c4dcfe2c903310719ebd7c18e615f1b7cbff357619f1123ef8",
+        "bytes": 74314
+      },
+      "name": "PK_4096_b10",
+      "dataset": "PK",
+      "batches": 10,
+      "panel": "a",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/pk/manifest.json",
+        "sha256": "c2e12d78d358149527cd0d4db70ea719422c7e691dfe3018a8dda94b0e7c6d7b",
+        "bytes": 1028
+      }
+    },
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 131072,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "name": "AU_131072_b10",
+      "dataset": "AU",
+      "batches": 10,
+      "panel": "b",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      }
+    },
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 131072,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "name": "AU_131072_b100",
+      "dataset": "AU",
+      "batches": 100,
+      "panel": "b",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      }
+    },
+    {
+      "vertices": 515281,
+      "initial_edges": 390847,
+      "updates": 131072,
+      "graph": {
+        "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/AU_u131072.graph",
+        "sha256": "33b08ea14fb244d6abe9069a6ac821e887b71f987bc27d765b3b5da084019033",
+        "bytes": 8324454
+      },
+      "source_graph": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/graphs/directed_weighted.slice",
+        "sha256": "34a4d5a1942ccf7c2d54a326872760473a1aba88860ec8e66e9fd64fa697c7b2",
+        "bytes": 6728335
+      },
+      "source_updates": {
+        "path": "/data/tmp/chuxiao/large_graph_campaign_v1/formal_v8_au_update_scaling/workloads/sx_askubuntu/updates/directed/insert_u131072.slice",
+        "sha256": "c4f28835520200c9f75a1a0833d77b561e7a4096dec4e0e1828e3245a007bf5c",
+        "bytes": 2378092
+      },
+      "name": "AU_131072_b1000",
+      "dataset": "AU",
+      "batches": 1000,
+      "panel": "b",
+      "source_manifest": {
+        "path": "/data/chuxiao/worktrees/spine-retention-sssp-completed-screen/docs/evidence/persistent_update_campaign_20260731/cross_dataset/au/manifest.json",
+        "sha256": "0a137af479c9c5c0b5cc9f6b3f56eed5e27d0378c2847789d4ee44bf3f92f407",
+        "bytes": 1064
+      }
+    }
+  ]
+}
