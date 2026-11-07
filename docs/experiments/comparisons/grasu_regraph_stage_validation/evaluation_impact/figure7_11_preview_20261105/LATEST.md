@@ -19,6 +19,16 @@ data, raw logs and source zip. It contains 42 valid points and two retained
 ResPR failures. It is not included in the frozen November 6 download and does
 not replace or rerun Figures 7--11.
 
+The November 7 [one-pass FPGA Fig. 8 attempt](current_fpga/fig8_persistent_once_20261107/README.md)
+now adds [all eight attempted pairs](current_fpga/fig8_persistent_once_20261107/fig8_fpga.csv)
+and a [preview](current_fpga/fig8_persistent_once_20261107/figures/fig8_fpga_update_throughput.png).
+Four pairs pass: AU favors G by 1.12x; SU/WK/SO favor Spine by
+1.20x/1.87x/13.00x. Spine fails PK and all three AU 131K batch-sweep cases;
+there is **no valid complete FPGA Fig. 8b curve**. Raw logs, source archive,
+clocks and failures are retained. These measurements use native Spine L2,
+not the selected simulator L4 layout, and do not replace its data below.
+The frozen November 6 download does not include this supplement.
+
 ## Data And Previews
 
 All paths below are relative to this handoff directory. Downloading the

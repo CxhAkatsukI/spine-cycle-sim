@@ -1,0 +1,2 @@
+Using XCL_DEVICE_INDEX=0
+SPINE_PERSISTENT_UPDATE status=FAIL error=vector::_M_range_check: __n (which is 17829908) >= this->size() (which is 3694361)

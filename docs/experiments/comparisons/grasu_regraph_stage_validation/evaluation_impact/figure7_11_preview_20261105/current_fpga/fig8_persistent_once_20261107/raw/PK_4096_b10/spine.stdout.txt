@@ -1,0 +1,10 @@
+SPINE_DEVICE bdf=0000:82:00.1
+SPINE_HOST_MAINT_PHASE arguments_ms=0.01969 kernel_wall_ms=0.882318 readback_wall_ms=0.051772
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=64 cold_edges=345
+SPINE_PERSISTENT_BATCH batch=0 updates=409 batch_ns=81913 update_wall_ns=902008 begin=0 end=409 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00371 kernel_wall_ms=2.78421 readback_wall_ms=0.044031
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=1 path=3 hot_edges=52 cold_edges=358
+SPINE_PERSISTENT_BATCH batch=1 updates=410 batch_ns=82433 update_wall_ns=2787918 begin=409 end=819 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00526 kernel_wall_ms=0.844106 readback_wall_ms=0.038361
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=60 cold_edges=349
+SPINE_PERSISTENT_BATCH batch=2 updates=409 batch_ns=91333 update_wall_ns=849366 begin=819 end=1228 target_level=0 path=2

@@ -1,0 +1,143 @@
+{
+  "status": "FAILED_RETAINED",
+  "error": "RuntimeError('spine failed (1): /data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/board0/PK_4096_b10/spine.stderr.txt')",
+  "command": [
+    "/usr/bin/taskset",
+    "-c",
+    "124,125",
+    "/usr/bin/env",
+    "-u",
+    "XCL_EMULATION_MODE",
+    "-u",
+    "GRASU_RESIDENT_BATCH_WALL",
+    "XCL_DEVICE_INDEX=0",
+    "SPINE_EXPECT_BDF=0000:82:00.1",
+    "GRASU_REGRAPH_EXPECT_BDF=0000:82:00.1",
+    "GRASU_UPDATE_REPEATS=1",
+    "GRASU_SHARDED_PREMIGRATE_INPUTS=1",
+    "GRASU_SHARDED_METADATA_REPLICAS=1",
+    "GRASU_SHARDED_EVENT_TRACE=0",
+    "LD_LIBRARY_PATH=/opt/xilinx/xrt/lib:/usr/lib/x86_64-linux-gnu",
+    "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/build/spine/spine_persistent.host",
+    "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+    "--persistent-update",
+    "--dynamic-graph",
+    "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/inputs-v2/PK_u4096.graph",
+    "--batches",
+    "10"
+  ],
+  "memory_guard": {
+    "profile": "zfs-arc-clean-half-background5-v1",
+    "admission": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 93610119168,
+      "mem_free_bytes": 75493994496,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 71416235408,
+        "mru_evictable_data": 15038312448,
+        "mfu_evictable_data": 41946103296
+      },
+      "clean_evictable_bytes": 56984415744,
+      "discount_denominator": 2,
+      "effective_available_bytes": 103986202368,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    },
+    "status": "COMPLETED",
+    "child_started": true,
+    "prelaunch": {
+      "status": "ADMITTED",
+      "child_started": false,
+      "checks": 1,
+      "waited_seconds": 0,
+      "pressure_checks": 0,
+      "last_observation": {
+        "profile": "zfs-arc-clean-half-background5-v1",
+        "mem_available_bytes": 93610119168,
+        "mem_free_bytes": 75493994496,
+        "arc": {
+          "c_min": 8440012672,
+          "size": 71416235408,
+          "mru_evictable_data": 15038312448,
+          "mfu_evictable_data": 41946103296
+        },
+        "clean_evictable_bytes": 56984415744,
+        "discount_denominator": 2,
+        "effective_available_bytes": 103986202368,
+        "pressure_avg10": {
+          "some": 0.0,
+          "full": 0.0
+        },
+        "pressure_ok": true,
+        "pressure_limits_avg10": {
+          "some": 10,
+          "full": 5
+        }
+      }
+    },
+    "minimum_effective_available_bytes": 94875220480,
+    "maximum_pressure_avg10": {
+      "some": 0.0,
+      "full": 0.0
+    },
+    "checks": 26,
+    "last_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 90723778560,
+      "mem_free_bytes": 72613920768,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 71371372448,
+        "mru_evictable_data": 15039782912,
+        "mfu_evictable_data": 41945543680
+      },
+      "clean_evictable_bytes": 56985326592,
+      "discount_denominator": 2,
+      "effective_available_bytes": 101106584064,
+      "pressure_avg10": {
+        "some": 0.0,
+        "full": 0.0
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    },
+    "pressure_grace_seconds": 10,
+    "maximum_consecutive_pressure_seconds": 0,
+    "pressured_checks": 0
+  },
+  "cgroup_before": {
+    "memory.current": "21970944\n",
+    "memory.peak": "19213164544\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n"
+  },
+  "cgroup_after": {
+    "memory.current": "21086208\n",
+    "memory.peak": "19213164544\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n"
+  },
+  "logs": [
+    {
+      "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/board0/PK_4096_b10/spine.stdout.txt",
+      "sha256": "b8de45ddbe9e0e4b7276e87243936e5cc46cfb225c22b788c74e12374789fc87",
+      "bytes": 1019
+    },
+    {
+      "path": "/data/chuxiao/checks/fig8-fpga-persistent-20261107-v1/board0/PK_4096_b10/spine.stderr.txt",
+      "sha256": "2a24ac3d88e709b572d549bd42cc2da73f6d1db55872a88f519fce0c30cf3fec",
+      "bytes": 111
+    }
+  ]
+}

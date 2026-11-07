@@ -1,0 +1,14 @@
+GRASU_PERSISTENT_CONFIG source_commit=81cbe8fa597315c829ae50ac3905d0365788ee60 host_source_sha256=d24067c75d0ee28f27128a7c5f64107fe8ceaa280775cecd195edb4937ac9ba0 metadata_replicas=1 metadata_policy=explicit_shared trace_aware_pma=1 initial_uploads=1 repeats=1 graph_compute_executed=0 update_allocation=trace_upper_bound shards=8 hbm_graph_allocated_bytes=168370176 peak_channel_bytes=16777216 channel_capacity_bytes=536870912
+GRASU_REGRAPH_DEVICE bdf=0000:82:00.1
+Using XCL_DEVICE_INDEX=0
+GRASU_PERSISTENT_BATCH batch=0 updates=409 batch_ns=461375 update_wall_ns=2079625 prepare_ns=13011 upload_ns=448364 begin=0 end=409 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=1 updates=410 batch_ns=614409 update_wall_ns=1695383 prepare_ns=11370 upload_ns=603039 begin=409 end=819 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=2 updates=409 batch_ns=600749 update_wall_ns=1738375 prepare_ns=10241 upload_ns=590508 begin=819 end=1228 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=3 updates=410 batch_ns=617610 update_wall_ns=1653832 prepare_ns=10570 upload_ns=607040 begin=1228 end=1638 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=4 updates=410 batch_ns=632160 update_wall_ns=1650342 prepare_ns=10751 upload_ns=621409 begin=1638 end=2048 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=5 updates=409 batch_ns=617349 update_wall_ns=1683882 prepare_ns=10450 upload_ns=606899 begin=2048 end=2457 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=6 updates=410 batch_ns=577778 update_wall_ns=1657902 prepare_ns=9630 upload_ns=568148 begin=2457 end=2867 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=7 updates=409 batch_ns=624359 update_wall_ns=1655272 prepare_ns=10670 upload_ns=613689 begin=2867 end=3276 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=8 updates=410 batch_ns=666301 update_wall_ns=1657432 prepare_ns=10320 upload_ns=655981 begin=3276 end=3686 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_BATCH batch=9 updates=410 batch_ns=615409 update_wall_ns=1672293 prepare_ns=10240 upload_ns=605169 begin=3686 end=4096 active_shards=8 status=COMPLETE
+GRASU_PERSISTENT_UPDATE status=PASS vertices=515281 initial_edges=390847 logical_updates=4096 batches=10 layout_ns=655845220 upload_ns=166703586 batch_ns=6027499 update_wall_ns=17144338 setup_inclusive_ns=845720643 pma_mismatches=0 metadata_replicas=1 trace_aware_pma=1 repeats=1 touched_segments=2067 checked_words=33072

@@ -1,0 +1,4 @@
+SPINE_DEVICE bdf=0000:82:00.1
+SPINE_HOST_MAINT_PHASE arguments_ms=0.012381 kernel_wall_ms=6.00927 readback_wall_ms=0.051371
+SPINE_DYNAMIC_MAINT_PASS logical_updates=13107 physical_updates=13107 target_level=0 path=2 hot_edges=0 cold_edges=13107
+SPINE_PERSISTENT_BATCH batch=0 updates=13107 batch_ns=374292 update_wall_ns=6021649 begin=0 end=13107 target_level=0 path=2

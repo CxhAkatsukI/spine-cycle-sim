@@ -14,6 +14,13 @@ contains the [crossover figure](affected_fraction_fpga_20261107/handoff/figures/
 all attempted points, raw logs and a source zip. It is separate from the frozen
 Fig. 7--11 archive above; no existing measurements have been replaced.
 
+**FPGA Fig. 8 attempt:** the [November 7 one-pass supplement](current_fpga/fig8_persistent_once_20261107/README.md)
+contains eight attempted pairs without warmups or averaging, four valid
+timing pairs and four Spine failures. AU favors G; SU/WK/SO favor Spine.
+PK and the AU batch sweep fail, so this is not a completed valid FPGA
+replacement for both panels. Its CSV, preview, raw logs and host sources
+are colocated; the earlier simulator figure remains separate.
+
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
 has completed all eight correctness-checked pairs. Spine wins by
 1.18x--26.61x on these insertion traces. The

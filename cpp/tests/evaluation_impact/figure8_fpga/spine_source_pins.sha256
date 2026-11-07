@@ -1,0 +1,8 @@
+bd29777b662f94f4386993e23ca6cfd2f32977f19f640aa69f8eb16d747b92c1  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_partitioned_algorithms_smoke.cpp
+fda85902af1f8f39f7314cba41c89ad5593c39b66556dd1cdeeb398f1718b04d  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_update_setup_once.hpp
+af9499ffa3f5fc744435a7478b29ade2a86829bbf63fddc91a79f873bdd3dd68  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_split.hpp
+69a69c49e3017a981208e63169ed6cad0199f0f46971000c3fc8d27e46c9ae0a  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/host_resident_benchmark.hpp
+b0c87c47de2b4fc5e6c8b40f0ebdacb1bd8e06db4b3eea94489e58257a67511d  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/xcl2.cpp
+9d81a1b46dd68af8ee7183f39e2f6f6eb6a745f4e7cb785a7bb3e268215e37b5  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/xcl2.hpp
+df652109671cd8ec3b6ae0ca84ccbc5d744820d34c3e8dd82b0da6cdab95aca5  /data/chuxiao/worktrees/spine-hls-fig8-native/src/spine_paper_architecture_contract.hpp
+cd8541472ad5578a520287cd2551476b91c70f39b63489fd5c0a7508f9343fd9  /data/chuxiao/worktrees/spine-hls-fig8-native/tests/test_integration/stubs/CL/cl_ext_xilinx.h

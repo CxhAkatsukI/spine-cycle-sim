@@ -1,0 +1,33 @@
+SPINE_DEVICE bdf=0000:82:00.1
+SPINE_HOST_MAINT_PHASE arguments_ms=0.01483 kernel_wall_ms=0.374432 readback_wall_ms=0.043951
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=0 updates=409 batch_ns=81733 update_wall_ns=389262 begin=0 end=409 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003651 kernel_wall_ms=1.30504 readback_wall_ms=0.034061
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=1 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=1 updates=410 batch_ns=66612 update_wall_ns=1308691 begin=409 end=819 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00297 kernel_wall_ms=0.348951 readback_wall_ms=0.031431
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=0 path=2 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=2 updates=409 batch_ns=64942 update_wall_ns=351921 begin=819 end=1228 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.0032 kernel_wall_ms=2.37047 readback_wall_ms=0.033101
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=2 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=3 updates=410 batch_ns=63742 update_wall_ns=2373674 begin=1228 end=1638 target_level=2 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00345 kernel_wall_ms=0.378942 readback_wall_ms=0.034111
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=4 updates=410 batch_ns=74742 update_wall_ns=382392 begin=1638 end=2048 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00328 kernel_wall_ms=1.2649 readback_wall_ms=0.031681
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=1 path=3 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=5 updates=409 batch_ns=64912 update_wall_ns=1268180 begin=2048 end=2457 target_level=1 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00351 kernel_wall_ms=0.32065 readback_wall_ms=0.034591
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=6 updates=410 batch_ns=66612 update_wall_ns=324160 begin=2457 end=2867 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00349 kernel_wall_ms=4.38051 readback_wall_ms=0.037101
+SPINE_DYNAMIC_MAINT_PASS logical_updates=409 physical_updates=409 target_level=3 path=3 hot_edges=0 cold_edges=409
+SPINE_PERSISTENT_BATCH batch=7 updates=409 batch_ns=66452 update_wall_ns=4383998 begin=2867 end=3276 target_level=3 path=3
+SPINE_HOST_MAINT_PHASE arguments_ms=0.003711 kernel_wall_ms=0.3424 readback_wall_ms=0.031261
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=0 path=2 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=8 updates=410 batch_ns=73772 update_wall_ns=346111 begin=3276 end=3686 target_level=0 path=2
+SPINE_HOST_MAINT_PHASE arguments_ms=0.00355 kernel_wall_ms=1.31574 readback_wall_ms=0.031651
+SPINE_DYNAMIC_MAINT_PASS logical_updates=410 physical_updates=410 target_level=1 path=3 hot_edges=0 cold_edges=410
+SPINE_PERSISTENT_BATCH batch=9 updates=410 batch_ns=72263 update_wall_ns=1319291 begin=3686 end=4096 target_level=1 path=3
+SPINE_UPDATE_SETUP_BOOTSTRAP host_ns=313242650 migrate_ns=225345544 lifecycle_ns=4548992
+SPINE_PERSISTENT_UPDATE status=PASS vertices=515281 initial_edges=390847 logical_updates=4096 batches=10 layout_ns=392741842 bootstrap_ns=543137186 batch_ns=695782 update_wall_ns=12447680 setup_inclusive_ns=949022490 checked_edges=394943
