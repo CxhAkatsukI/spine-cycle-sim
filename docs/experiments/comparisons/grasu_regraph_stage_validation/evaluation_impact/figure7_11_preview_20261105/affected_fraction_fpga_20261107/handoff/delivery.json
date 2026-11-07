@@ -1,0 +1,328 @@
+{
+  "status": "COMPLETED_WITH_FAILURES",
+  "studies": [
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/sssp-au-v2/campaign.json",
+        "sha256": "f7d9d0d2569bf56a2d35fe79b8c48162a522cb2ff9b506a7844f977b388c80f2",
+        "bytes": 781141
+      },
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "status": "COMPLETED",
+      "planned_points": 10,
+      "measured_points": 10,
+      "planned_names": [
+        "target-1e-05",
+        "target-0.0001",
+        "target-0.001",
+        "target-0.01",
+        "target-0.1",
+        "target-0.5",
+        "ordinary-8",
+        "ordinary-64",
+        "ordinary-512",
+        "ordinary-4096"
+      ],
+      "missing_points": []
+    },
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/sssp-au-refine/campaign.json",
+        "sha256": "4941186ee890e5dc19777a0afdfcfdc708ec03f008d2f8b1946e6af0646fa38a",
+        "bytes": 238531
+      },
+      "algorithm": "weighted_sssp",
+      "dataset": "AU",
+      "status": "COMPLETED",
+      "planned_points": 3,
+      "measured_points": 3,
+      "planned_names": [
+        "target-0.002",
+        "target-0.004",
+        "target-0.006"
+      ],
+      "missing_points": []
+    },
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/sssp-r19/campaign.json",
+        "sha256": "6876ae19159ef3eb910646185a7c216a8f6e9e5c2db493b11456203a8195b487",
+        "bytes": 780825
+      },
+      "algorithm": "weighted_sssp",
+      "dataset": "R19",
+      "status": "COMPLETED",
+      "planned_points": 10,
+      "measured_points": 10,
+      "planned_names": [
+        "target-1e-05",
+        "target-0.0001",
+        "target-0.001",
+        "target-0.01",
+        "target-0.1",
+        "target-0.5",
+        "ordinary-8",
+        "ordinary-64",
+        "ordinary-512",
+        "ordinary-4096"
+      ],
+      "missing_points": []
+    },
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au-board0/campaign.json",
+        "sha256": "91b12eb8176dc482ce42ba4daee03a69d8dd82d0f7a76aa26deafb0f7f886b2d",
+        "bytes": 822876
+      },
+      "algorithm": "connected_components",
+      "dataset": "AU",
+      "status": "COMPLETED",
+      "planned_points": 10,
+      "measured_points": 10,
+      "planned_names": [
+        "target-1e-05",
+        "target-0.0001",
+        "target-0.001",
+        "target-0.01",
+        "target-0.1",
+        "target-0.5",
+        "ordinary-8",
+        "ordinary-64",
+        "ordinary-512",
+        "ordinary-4096"
+      ],
+      "missing_points": []
+    },
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/respr-au-v2/campaign.json",
+        "sha256": "beb7a7214e3b4b3666d435c939e4997fdcbc3fc65d177c506da256435d661c24",
+        "bytes": 162017
+      },
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "status": "FAILED_RETAINED",
+      "planned_points": 11,
+      "measured_points": 2,
+      "planned_names": [
+        "fan-in-1024",
+        "fan-in-128",
+        "fan-in-131072",
+        "fan-in-16384",
+        "fan-in-65536",
+        "fan-in-8",
+        "hub-1",
+        "ordinary-4096",
+        "ordinary-512",
+        "ordinary-64",
+        "ordinary-8"
+      ],
+      "missing_points": []
+    },
+    {
+      "campaign": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/respr-au-v3/campaign.json",
+        "sha256": "6eb61a1820bfd83078d338322db3642773381f0f4228aee2cce2872a333cb860",
+        "bytes": 550343
+      },
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "status": "COMPLETED_WITH_FAILURES",
+      "planned_points": 8,
+      "measured_points": 7,
+      "planned_names": [
+        "fan-in-16384",
+        "fan-in-65536",
+        "fan-in-8",
+        "hub-1",
+        "ordinary-4096",
+        "ordinary-512",
+        "ordinary-64",
+        "ordinary-8"
+      ],
+      "missing_points": []
+    }
+  ],
+  "planned_unique_points": 44,
+  "failed_points": [
+    {
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "name": "fan-in-131072"
+    },
+    {
+      "algorithm": "residual_pagerank",
+      "dataset": "AU",
+      "name": "fan-in-16384"
+    }
+  ],
+  "measured_points": 42,
+  "total_samples": 172,
+  "hardware": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/hardware.json",
+    "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+    "bytes": 4520
+  },
+  "exporter": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/delivery.py",
+    "sha256": "ddde5ab99c0de4918ee9283a516c9bb9971633d33d4ac7286150cd11ac1c8ac9",
+    "bytes": 4859
+  },
+  "retained_campaigns": [
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/cc-au/campaign.json",
+      "sha256": "2d2e198b935c0cd0d3af62d54f2501ff65e3cd0da63e79341c96b8d72a261476",
+      "bytes": 7313
+    },
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/respr-au/campaign.json",
+      "sha256": "01f2ca2a46a9fefc2e24e5c4e8204d912c544505efbe87543798d220d36bbc01",
+      "bytes": 14449
+    }
+  ],
+  "candidates": [
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au/workloads.json",
+      "sha256": "33c16f6c6cac851f5632143342bbf738058857e04e596db2a8a7a345b8315f9d",
+      "bytes": 15060
+    },
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/respr-au-fanin/workloads.json",
+      "sha256": "1ac1efd7d9f3630fbc18f41eda28978f0b9c5398d99bc791a7bd9d8514f6ce76",
+      "bytes": 15218
+    }
+  ],
+  "files": {
+    "data/campaign-0.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-0.json",
+      "sha256": "f7d9d0d2569bf56a2d35fe79b8c48162a522cb2ff9b506a7844f977b388c80f2",
+      "bytes": 781141
+    },
+    "data/campaign-1.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-1.json",
+      "sha256": "4941186ee890e5dc19777a0afdfcfdc708ec03f008d2f8b1946e6af0646fa38a",
+      "bytes": 238531
+    },
+    "data/campaign-2.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-2.json",
+      "sha256": "6876ae19159ef3eb910646185a7c216a8f6e9e5c2db493b11456203a8195b487",
+      "bytes": 780825
+    },
+    "data/campaign-3.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-3.json",
+      "sha256": "91b12eb8176dc482ce42ba4daee03a69d8dd82d0f7a76aa26deafb0f7f886b2d",
+      "bytes": 822876
+    },
+    "data/campaign-4.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-4.json",
+      "sha256": "beb7a7214e3b4b3666d435c939e4997fdcbc3fc65d177c506da256435d661c24",
+      "bytes": 162017
+    },
+    "data/campaign-5.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-5.json",
+      "sha256": "6eb61a1820bfd83078d338322db3642773381f0f4228aee2cce2872a333cb860",
+      "bytes": 550343
+    },
+    "data/campaign-6.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-6.json",
+      "sha256": "2d2e198b935c0cd0d3af62d54f2501ff65e3cd0da63e79341c96b8d72a261476",
+      "bytes": 7313
+    },
+    "data/campaign-7.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/campaign-7.json",
+      "sha256": "01f2ca2a46a9fefc2e24e5c4e8204d912c544505efbe87543798d220d36bbc01",
+      "bytes": 14449
+    },
+    "data/cpu-candidates-0.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/cpu-candidates-0.json",
+      "sha256": "33c16f6c6cac851f5632143342bbf738058857e04e596db2a8a7a345b8315f9d",
+      "bytes": 15060
+    },
+    "data/cpu-candidates-1.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/cpu-candidates-1.json",
+      "sha256": "1ac1efd7d9f3630fbc18f41eda28978f0b9c5398d99bc791a7bd9d8514f6ce76",
+      "bytes": 15218
+    },
+    "data/hardware.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/hardware.json",
+      "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+      "bytes": 4520
+    },
+    "data/host-logs.tar.gz": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/host-logs.tar.gz",
+      "sha256": "07091ffa3e491eab587e55b867deefcb05a5da8e7f7e5a63f753463077f1c53d",
+      "bytes": 1365698
+    },
+    "data/points.csv": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/points.csv",
+      "sha256": "e25b880185fe25a915d5fac6867fe2f2a72f520a13bac3d2eb23b0af1ef79c86",
+      "bytes": 9928
+    },
+    "data/samples.csv": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/samples.csv",
+      "sha256": "c1124762027b5056c3d27fd73511e2a6ce472f0680571024926f7904d2ad0d73",
+      "bytes": 81230
+    },
+    "data/summary.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/summary.json",
+      "sha256": "ccbbd82792ea90a9fbc9f177a46a80b6825ef14cdae0349512d70664b4729efc",
+      "bytes": 43052
+    },
+    "data/updates.tar.gz": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/updates.tar.gz",
+      "sha256": "3150ff9c9aa56e6be87de07be20d93898fbab38f05384a261b7ce1d92ab38ede",
+      "bytes": 6259407
+    },
+    "data/workloads-0.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-0.json",
+      "sha256": "38a2be8e55a2b7dda76b4216a3285d3c913738a09144aacd24c6233796bff955",
+      "bytes": 5865
+    },
+    "data/workloads-1.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-1.json",
+      "sha256": "4fb1bdeb3e20656bf738e5b3e7b8edaa3916b8859eb4c364630d86bed004e61c",
+      "bytes": 3083
+    },
+    "data/workloads-2.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-2.json",
+      "sha256": "9edc611644ae3a856d46debbbac6495cdd700dfb747ab7249bacf1bee102a378",
+      "bytes": 6773
+    },
+    "data/workloads-3.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-3.json",
+      "sha256": "91d6accbf1689af6740f4d986c7527ff4c77eb1d9ae8fdbd7db0117318f969ad",
+      "bytes": 6008
+    },
+    "data/workloads-4.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-4.json",
+      "sha256": "49d400655dae107114e989fa8dd3e8ede2832d8e8d69c5d4bde77cc93db5c94b",
+      "bytes": 10966
+    },
+    "data/workloads-5.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-5.json",
+      "sha256": "a4a5351572210b79400812cf1db0c435a839d1a1eb827bef344ea8d25190f774",
+      "bytes": 8544
+    },
+    "data/workloads-6.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-6.json",
+      "sha256": "91d6accbf1689af6740f4d986c7527ff4c77eb1d9ae8fdbd7db0117318f969ad",
+      "bytes": 6008
+    },
+    "data/workloads-7.json": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/data/workloads-7.json",
+      "sha256": "49d400655dae107114e989fa8dd3e8ede2832d8e8d69c5d4bde77cc93db5c94b",
+      "bytes": 10966
+    },
+    "figures/crossover.pdf": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/figures/crossover.pdf",
+      "sha256": "0922cea6937fcc3268f4469af1e4fe3b9e402013fd3e45d95e2ace24af565277",
+      "bytes": 13231
+    },
+    "figures/crossover.png": {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/affected_fraction_fpga/handoff/figures/crossover.png",
+      "sha256": "faef2616d0c40c4e0517817043cd2a9cfe610c7701320ab605f93a614b938f7d",
+      "bytes": 71025
+    }
+  }
+}

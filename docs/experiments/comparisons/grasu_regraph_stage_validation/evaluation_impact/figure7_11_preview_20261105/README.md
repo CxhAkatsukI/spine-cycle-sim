@@ -8,6 +8,12 @@ includes all eight direct CC board pairs; `CURRENT.md` and
 latest delivery. The remaining sections retain earlier checkpoints and
 their limitations for provenance.
 
+**Additional FPGA experiment:** the
+[November 7 affected-fraction supplement](affected_fraction_fpga_20261107/README.md)
+contains the [crossover figure](affected_fraction_fpga_20261107/handoff/figures/crossover.png),
+all attempted points, raw logs and a source zip. It is separate from the frozen
+Fig. 7--11 archive above; no existing measurements have been replaced.
+
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
 has completed all eight correctness-checked pairs. Spine wins by
 1.18x--26.61x on these insertion traces. The

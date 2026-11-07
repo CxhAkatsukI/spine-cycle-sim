@@ -1,0 +1,171 @@
+{
+  "algorithm": "connected_components",
+  "dataset": "AU",
+  "source": 0,
+  "vertices": 515281,
+  "edges": 679246,
+  "original": {
+    "path": "/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_connected_components_insert_u8.graph",
+    "sha256": "66eb4ba111ceec80ce9c6496cd04c34aa74cedfc813dc37dd55417d2a03dbc90",
+    "bytes": 10382474
+  },
+  "context": {
+    "components": 379217,
+    "largest_component": 131340,
+    "seed": 20261106,
+    "max_updates": 131072,
+    "vertex_denominator": "all_declared_vertices_including_isolated_ids"
+  },
+  "points": [
+    {
+      "name": "target-1e-05",
+      "kind": "target",
+      "target_fraction": 1e-05,
+      "target_reached": true,
+      "changed_vertices": 7,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-1e-05.graph",
+        "sha256": "9a1b63d8ed0a3ed5a8d70427b504fdd294d9a384aa4b80f6cc0b180a67b4b596",
+        "bytes": 10382302
+      },
+      "updates": 2,
+      "changed_fraction": 1.3584820709476966e-05,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "target-0.0001",
+      "kind": "target",
+      "target_fraction": 0.0001,
+      "target_reached": true,
+      "changed_vertices": 53,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-0.0001.graph",
+        "sha256": "f90af7c50a0c36e827e8bc5d6840bd37ab7748988654985ee13a0a3a1b4cf746",
+        "bytes": 10382571
+      },
+      "updates": 18,
+      "changed_fraction": 0.00010285649965746846,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "target-0.001",
+      "kind": "target",
+      "target_fraction": 0.001,
+      "target_reached": true,
+      "changed_vertices": 519,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-0.001.graph",
+        "sha256": "87904cc149536db24f5f1a62d1d8c2eb30bbe44f1b62e28421646d189b3b0098",
+        "bytes": 10386496
+      },
+      "updates": 238,
+      "changed_fraction": 0.0010072174211740777,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "target-0.01",
+      "kind": "target",
+      "target_fraction": 0.01,
+      "target_reached": true,
+      "changed_vertices": 5153,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-0.01.graph",
+        "sha256": "9736b9b648feb9f46f4d6be1ab601f8b0b07badccf2f4d65eb1ff943c2ca7e02",
+        "bytes": 10461195
+      },
+      "updates": 4412,
+      "changed_fraction": 0.01000036873084783,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "target-0.1",
+      "kind": "target",
+      "target_fraction": 0.1,
+      "target_reached": true,
+      "changed_vertices": 51529,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-0.1.graph",
+        "sha256": "2fed596411f4822e7cd998d7de7e537738cf0b97577996653f06c796d0009c99",
+        "bytes": 12061480
+      },
+      "updates": 93608,
+      "changed_fraction": 0.1000017466198055,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "target-0.5",
+      "kind": "target",
+      "target_fraction": 0.5,
+      "target_reached": false,
+      "changed_vertices": 201600,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/target-0.5.graph",
+        "sha256": "75e06e2b12578e292ecb58cfb0e4552f7654230fb58d0e3711f34f276f05cee6",
+        "bytes": 12702759
+      },
+      "updates": 131072,
+      "changed_fraction": 0.3912428364329366,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "ordinary-8",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "requested_undirected_insertions": 8,
+      "changed_vertices": 8,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/ordinary-8.graph",
+        "sha256": "c4606e09f78fbdc57179d2293e7bd121ae065aef1d6f1e97e6d1ecae7bd0f867",
+        "bytes": 10382575
+      },
+      "updates": 16,
+      "changed_fraction": 1.552550938225939e-05,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "ordinary-64",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "requested_undirected_insertions": 64,
+      "changed_vertices": 66,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/ordinary-64.graph",
+        "sha256": "adea14d3d2fde015dbb056d92f295078cad879ce8aab2ea0d2cc717daf57b89b",
+        "bytes": 10384622
+      },
+      "updates": 128,
+      "changed_fraction": 0.00012808545240363995,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "ordinary-512",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "requested_undirected_insertions": 512,
+      "changed_vertices": 492,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/ordinary-512.graph",
+        "sha256": "ec9086762f9228a710ccfdab78c57b537cb1cb2ca7daf6da2a48f457d15a436c",
+        "bytes": 10401121
+      },
+      "updates": 1024,
+      "changed_fraction": 0.0009548188270089524,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    },
+    {
+      "name": "ordinary-4096",
+      "kind": "ordinary",
+      "target_fraction": null,
+      "requested_undirected_insertions": 4096,
+      "changed_vertices": 3903,
+      "graph": {
+        "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/inputs/cc-au/ordinary-4096.graph",
+        "sha256": "066a636e1e68e73174969ad17bceb981d570b733e888c4a3e0a7b66ed8852e87",
+        "bytes": 10533369
+      },
+      "updates": 8192,
+      "changed_fraction": 0.007574507889869799,
+      "cpu_reference": "canonical_minimum_union_find_old_and_new"
+    }
+  ]
+}

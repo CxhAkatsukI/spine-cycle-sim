@@ -6,6 +6,11 @@ wall latency. It supplements, and does not replace, the frozen Figures 7--11.
 The paper is not edited. Raw evidence is retained outside the checkout;
 completed measurements are exported here with their input and host-log archives.
 
+An identical author-facing copy is also available in the original evaluation
+handoff as [affected_fraction_fpga_20261107](../grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/affected_fraction_fpga_20261107/README.md).
+That renamed supplement includes a reading guide, the complete `handoff/`
+and the source zip; existing Figures 7--11 and their frozen archive are unchanged.
+
 ## Results And Delivery
 
 These are FPGA wall measurements, not simulator predictions. A value above

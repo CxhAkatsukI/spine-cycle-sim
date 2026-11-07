@@ -1,0 +1,31 @@
+{
+  "repository": "https://github.com/CxhAkatsukI/spine-cycle-sim",
+  "commit": "018b3c888894f1833a2242a2ee222897387a1602",
+  "archive": "../crossover-source.zip",
+  "sha256": "d7f537b59c84c1a954fa31e0f70f788029ffafa4cd03b09d146f831de8f2ec87",
+  "creation": "git archive --format=zip --output=docs/experiments/comparisons/affected_fraction_fpga/crossover-source.zip HEAD AGENTS.md pyproject.toml spine_cycle_sim configs scripts tests",
+  "includes": [
+    "AGENTS.md",
+    "pyproject.toml",
+    "spine_cycle_sim/",
+    "configs/",
+    "scripts/",
+    "tests/"
+  ],
+  "experiment_package": "spine_cycle_sim/experiments/evaluation_impact/affected_fraction/",
+  "excludes": [
+    "FPGA tools and tool licenses",
+    "large old-graph inputs",
+    "host executables",
+    "routed bitstreams",
+    "complete HLS source trees"
+  ],
+  "hardware_identities": "data/hardware.json",
+  "workload_identities": "data/workloads-*.json",
+  "exact_updates": "data/updates.tar.gz",
+  "raw_host_logs": "data/host-logs.tar.gz",
+  "notes": [
+    "The source archive freezes analysis and reproduction code; the delivery commit additionally contains the final evidence and README.",
+    "Exported JSON manifests are parsed and reserialized, so whitespace and equivalent numeric notation can differ from source-file byte identities recorded in the campaign journals. Input semantics and exact update records are retained."
+  ]
+}

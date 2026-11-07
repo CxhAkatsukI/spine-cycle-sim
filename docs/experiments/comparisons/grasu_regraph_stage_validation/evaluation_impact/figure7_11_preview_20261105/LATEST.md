@@ -12,6 +12,13 @@ selection, checksums and all 24 Fig. 7 outcomes. Unlike the historical
 and the LJ08 ResPR measurement. The old archive and `CURRENT.md` remain
 frozen and are **not the selected delivery**.
 
+The separate November 7
+[affected-fraction FPGA supplement](affected_fraction_fpga_20261107/README.md)
+is now colocated here, with its [figure preview](affected_fraction_fpga_20261107/handoff/figures/crossover.png),
+data, raw logs and source zip. It contains 42 valid points and two retained
+ResPR failures. It is not included in the frozen November 6 download and does
+not replace or rerun Figures 7--11.
+
 ## Data And Previews
 
 All paths below are relative to this handoff directory. Downloading the
