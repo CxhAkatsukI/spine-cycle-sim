@@ -8,19 +8,22 @@ This note tracks the November 10 manuscript snapshot. The paper is unchanged.
 [Measured crossing brackets](followup/rn_impact_summary.json) ·
 [Affected-fraction preview](followup/rn_affected_fraction.png) ·
 [Batch-size preview](followup/rn_batch_size.png) ·
+[Batch work preview](followup/rn_batch_work.png) ·
 [Ligra timings](followup/rn_ligra_trifoliate.csv) ·
 [Inputs and CPU receipts](followup/workloads_and_ligra.tar.gz)
 
 ## Measured Results
 
-This snapshot contains 14 validated pairs out of 18 planned. The last
-controlled point and three larger ordinary SSSP points are not yet in
-the previews. CC and ResPR have all four ordinary points.
+This snapshot contains 15 validated pairs out of 18 planned. The six
+controlled SSSP points and all four ordinary points for each of CC and
+ResPR are complete. Three larger ordinary SSSP points are still pending.
 
 On the controlled one-edge SSSP sweep, Spine is 2.05x faster at
 10,972 changed vertices (0.558%). G+R is 5.08x faster at 202,544 changed
 vertices (10.31%). These adjacent measured points bracket a change
-of winner, not a measured or universal crossover fraction.
+of winner, not a measured or universal crossover fraction. At the
+largest controlled point (50.76% changed), both systems run 610 nonempty
+rounds. G+R takes 16.902 s and Spine takes 512.739 s (30.34x for G+R).
 
 For CC, the largest old component already has minimum label zero and
 contains 1,957,027 of 1,965,206 real vertices. In an insertion-only
@@ -119,3 +122,7 @@ The affected-fraction chart uses a linear interval from 0% to 0.001%
 and a log scale above it, so zero-change observations remain at exactly
 0%. Only controlled SSSP points are connected; the ordinary batches and
 controlled shortcuts are separate populations.
+The batch work preview uses CPU counts for updated sources and changed
+vertices. The edge panel uses the measured Spine SSSP edge-visit and CC
+relaxation-edge counters; it omits ResPR because its host does not report
+the corresponding counter. It does not replace missing counts with zeros.

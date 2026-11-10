@@ -15,6 +15,8 @@ DATASETS = ("AU", "SU", "WK", "SO", "PK", "LJ", "LJ08", "R19", "RN")
 ALGORITHMS = ("weighted_sssp", "connected_components", "residual_pagerank")
 LABELS = ("SSSP", "CC", "ResPR")
 MEASURED = ("MEASURED", "MEASURED_WITHOUT_RAW_SKEW_REPORT")
+SIZES = (8, 64, 512, 4096)
+MARKERS = ("o", "s", "D")
 
 
 def handoff_style():
@@ -75,7 +77,7 @@ def impact(plt, style, directory):
         return
     figure, axis = plt.subplots(figsize=(3.55, 2.48), layout="constrained")
     for algorithm, label, (color, _), marker in zip(
-            ALGORITHMS, LABELS, style.SERIES, ("o", "s", "D"), strict=True):
+            ALGORITHMS, LABELS, style.SERIES, MARKERS, strict=True):
         cases = sorted((row for row in rows if row["algorithm"] == algorithm),
                        key=lambda row: row["changed_fraction"])
         controlled = [row for row in cases if row["kind"] != "ordinary"]
@@ -104,12 +106,24 @@ def impact(plt, style, directory):
     save(plt, figure, directory / "rn_affected_fraction")
 
 
-def batch_size(plt, style, directory):
-    sizes = (8, 64, 512, 4096)
-    rows = {(row["algorithm"], int(row["logical_insertions"])): row
+def batch_rows(style, directory):
+    return {(row["algorithm"], int(row["logical_insertions"])): row
             for row in style.read_csv(directory / "rn_fpga_sweep.csv")
-            if row["kind"] == "ordinary" and row["status"] == "MEASURED"}
-    if not any((algorithm, size) in rows for algorithm in ALGORITHMS for size in sizes[1:]):
+            if row["kind"] == "ordinary"}
+
+
+def batch_axis(axis, style):
+    axis.set_xlim(-.24, len(SIZES) - .76)
+    axis.set_xticks(range(len(SIZES)), [str(size) for size in SIZES])
+    axis.yaxis.set_minor_locator(NullLocator())
+    style.style_axis(axis)
+    axis.yaxis.set_major_formatter(FuncFormatter(latency_tick))
+
+
+def batch_size(plt, style, directory):
+    rows = {key: row for key, row in batch_rows(style, directory).items()
+            if row["status"] == "MEASURED"}
+    if not any((algorithm, size) in rows for algorithm in ALGORITHMS for size in SIZES[1:]):
         return
     figure, axes = plt.subplots(1, 3, figsize=(5.3, 1.87), layout="constrained")
     for axis, algorithm, label in zip(axes, ALGORITHMS, LABELS, strict=True):
@@ -119,25 +133,57 @@ def batch_size(plt, style, directory):
             ("gr_ms", "G+R", "s", style.ORANGE),
         ):
             values = [float(rows[algorithm, size][field]) if (algorithm, size) in rows
-                      else math.nan for size in sizes]
+                      else math.nan for size in SIZES]
             measured.extend(value for value in values if math.isfinite(value))
-            axis.plot(range(len(sizes)), values, label=system, marker=marker,
+            axis.plot(range(len(SIZES)), values, label=system, marker=marker,
                       color=color, linewidth=.85, markersize=3.3, zorder=3)
         axis.set_yscale("log")
         if measured:
             subs = (1,) if max(measured) / min(measured) >= 40 else (1, 2, 5)
             axis.yaxis.set_major_locator(LogLocator(base=10, subs=subs))
-        axis.yaxis.set_minor_locator(NullLocator())
-        axis.set_xlim(-.24, len(sizes) - .76)
-        axis.set_xticks(range(len(sizes)), [str(size) for size in sizes])
         axis.set_title(label, pad=5)
-        style.style_axis(axis)
-        axis.yaxis.set_major_formatter(FuncFormatter(latency_tick))
+        batch_axis(axis, style)
     axes[0].set_ylabel("Wall time (ms)")
     figure.supxlabel("Logical insertions per batch", fontsize=6.6)
     handles, labels = axes[0].get_legend_handles_labels()
     figure.legend(handles, labels, loc="outside upper center", ncol=2, frameon=False)
     save(plt, figure, directory / "rn_batch_size")
+
+
+def batch_work(plt, style, directory):
+    rows = batch_rows(style, directory)
+    panels = (
+        ("Updated sources", dict.fromkeys(ALGORITHMS, "updated_sources"), 15000, (8, 64, 512, 4096)),
+        ("Changed vertices", dict.fromkeys(ALGORITHMS, "changed_vertices"), 5e6, (0, 10, 1e3, 1e5, 1e6)),
+        ("Spine edge visits", {"weighted_sssp": "spine_processed_edges",
+                               "connected_components": "spine_cc_relax_edges"},
+         2e8, (0, 100, 1e4, 1e6, 1e8)),
+    )
+    figure, axes = plt.subplots(1, 3, figsize=(5.3, 1.87), layout="constrained")
+    for axis, (title, fields, limit, ticks) in zip(axes, panels, strict=True):
+        for index, (algorithm, label, (color, _), marker) in enumerate(zip(
+                ALGORITHMS, LABELS, style.SERIES, MARKERS, strict=True)):
+            if algorithm not in fields:
+                continue
+            cells = [rows.get((algorithm, size), {}).get(fields[algorithm]) for size in SIZES]
+            values = [int(value) if value else math.nan for value in cells]
+            limit = max(limit, 1.4 * max((value for value in values if math.isfinite(value)), default=0))
+            axis.plot(range(len(SIZES)), values,
+                      marker=marker, markersize=(4.8, 3.3, 2.6)[index], markerfacecolor="none",
+                      linestyle=("-", "-", "--")[index],
+                      color=color, linewidth=.8, label=label, zorder=3)
+        axis.set_yscale("symlog", linthresh=1)
+        axis.set_ylim(-.8, limit)
+        axis.yaxis.set_major_locator(FixedLocator(ticks))
+        axis.set_title(title, pad=5)
+        batch_axis(axis, style)
+    axes[0].yaxis.set_major_formatter(FormatStrFormatter("%d"))
+    axes[0].set_ylim(bottom=3)
+    axes[0].set_ylabel("Count")
+    figure.supxlabel("Logical insertions per batch", fontsize=6.6)
+    handles, labels = axes[0].get_legend_handles_labels()
+    figure.legend(handles, labels, loc="outside upper center", ncol=3, frameon=False)
+    save(plt, figure, directory / "rn_batch_work")
 
 
 def latency_tick(value, _):
@@ -156,3 +202,4 @@ if __name__ == "__main__":
     headline(plt, style, args.directory)
     impact(plt, style, args.directory)
     batch_size(plt, style, args.directory)
+    batch_work(plt, style, args.directory)
