@@ -14,9 +14,10 @@ This note tracks the November 10 manuscript snapshot. The paper is unchanged.
 
 ## Measured Results
 
-This snapshot contains 15 validated pairs out of 18 planned. The six
+This snapshot contains 16 validated pairs out of 18 planned. The six
 controlled SSSP points and all four ordinary points for each of CC and
-ResPR are complete. Three larger ordinary SSSP points are still pending.
+ResPR are complete. The 512- and 4,096-insertion ordinary SSSP points
+are still pending.
 
 On the controlled one-edge SSSP sweep, Spine is 2.05x faster at
 10,972 changed vertices (0.558%). G+R is 5.08x faster at 202,544 changed
@@ -24,6 +25,11 @@ vertices (10.31%). These adjacent measured points bracket a change
 of winner, not a measured or universal crossover fraction. At the
 largest controlled point (50.76% changed), both systems run 610 nonempty
 rounds. G+R takes 16.902 s and Spine takes 512.739 s (30.34x for G+R).
+
+The ordinary 64-insertion SSSP batch changes 1,116,781 distances (56.83%).
+Both arms run 300 rounds. G+R takes 8.759 s and Spine takes 410.420 s
+(46.86x for G+R). Spine's OpenCL reader/compute event span totals
+405.801 s; that span does not isolate memory stalls from other device work.
 
 For CC, the largest old component already has minimum label zero and
 contains 1,957,027 of 1,965,206 real vertices. In an insertion-only
@@ -64,8 +70,9 @@ target bin or alongside the ordinary sweep as if the batches were drawn
 from the same distribution.
 
 `MEASURED` in the FPGA CSV means both arms passed their final reference
-checks. Each row uses one measured pair; the ordinary 8-update rows
-reuse the Fig. 7 measurements. Blank timing and counter fields indicate
+checks. Each row uses one measured pair (Spine first, G+R second, no
+extra warm-up); the ordinary 8-update rows reuse the Fig. 7 measurements.
+There is no repeatability or run-order estimate. Blank timing and counter fields indicate
 missing observations, not zeros. Spine's SSSP work counters count visits
 and requests, not unique edges or distinct sources. CC reports relaxation
 edge visits and row queries in its own fields. G+R reports the layout's slot
