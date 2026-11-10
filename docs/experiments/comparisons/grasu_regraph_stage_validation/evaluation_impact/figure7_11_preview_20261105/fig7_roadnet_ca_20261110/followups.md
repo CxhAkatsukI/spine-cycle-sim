@@ -86,4 +86,11 @@ completed follow-up board logs with:
 
 ```sh
 python3 "$handoff/collect_followups.py" "$scratch" /tmp/rn-tables --archive-logs
+python3 "$handoff/render_followups.py" /tmp/rn-tables
 ```
+
+The renderer uses the selected handoff's GraphyFlow-based Matplotlib style
+and TX Typewriter. It needs LaTeX `txfonts` and `pdftoppm` for the PNG preview.
+The affected-fraction chart uses a log axis: zero-change observations remain
+in the CSV but cannot be plotted. Only controlled SSSP points are connected;
+the ordinary batches and controlled shortcuts are separate populations.

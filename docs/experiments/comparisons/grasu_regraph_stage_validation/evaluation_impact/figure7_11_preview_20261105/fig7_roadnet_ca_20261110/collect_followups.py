@@ -135,14 +135,18 @@ def collect_fig7(previous, board_rows):
     with previous.open(newline="") as stream:
         old = list(csv.DictReader(stream))
     current = [
-        dict(row, dataset="RN", source_csv="followup/rn_fpga_sweep.csv",
+        dict(row, dataset="RN", source_csv="rn_fpga_sweep.csv",
              spine_wall_ms=row["spine_ms"], gr_wall_ms=row["gr_ms"])
         for row in board_rows if row["name"] == "ordinary-8" and row["status"] == "MEASURED"
     ]
     keys = {(row["dataset"], row["algorithm"]) for row in old + current}
     if len(old) != 24 or len(current) != 3 or len(keys) != 27:
         raise ValueError("expected 24 frozen and 3 independently validated RN Fig. 7 rows")
-    return [dict(row, source_csv="../" + row["source_csv"]) for row in old] + current
+    return [
+        dict(row, algorithm="connected_components" if row["algorithm"] == "cc" else row["algorithm"],
+             source_csv="../../" + row["source_csv"])
+        for row in old
+    ] + current
 
 
 def collect(scratch, output):

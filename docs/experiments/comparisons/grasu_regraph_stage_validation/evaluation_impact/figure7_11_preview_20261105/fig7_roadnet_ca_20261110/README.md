@@ -10,9 +10,12 @@ the paper, the selected eight-dataset CSV, or the November 6 archive.
 [Board receipts](board/) · [Initial attempts](board/raw_attempts.tar.gz) ·
 [RN follow-up scope](followups.md)
 
-[Nine-dataset plotting CSV](followup/fig7_nine_datasets.csv): the frozen
+[Nine-dataset CSV](followup/fig7_nine_datasets.csv) ·
+[Preview PNG](followup/fig7_nine_datasets.png) ·
+[PDF](followup/fig7_nine_datasets.pdf). The preview combines the frozen
 24 observations and three RN measurements, including the RN SSSP loss.
-The `source_csv` values are relative to this README, not to the CSV.
+Bars extend from the 1x parity line; below it G+R is faster.
+The `source_csv` values are relative to the nine-dataset CSV.
 
 | Algorithm | Spine | G+R | Faster | Spine / G+R propagation rounds |
 | --- | ---: | ---: | --- | ---: |

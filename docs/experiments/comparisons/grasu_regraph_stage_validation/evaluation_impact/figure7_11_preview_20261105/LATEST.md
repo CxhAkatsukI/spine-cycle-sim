@@ -1,6 +1,7 @@
 # Selected Evaluation Delivery
 
-**Fig. 7 roadNet-CA (RN):** see the [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
+**Fig. 7 roadNet-CA (RN):** see the [nine-dataset preview](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.png)
+and [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
 for all three paired FPGA results, frozen inputs and CPU checks. G+R is
 33.31x faster on RN SSSP; Spine is 6.88x faster on RN CC and 1.33x faster
 on RN ResPR. The supplement also tracks the other RN experiments.
