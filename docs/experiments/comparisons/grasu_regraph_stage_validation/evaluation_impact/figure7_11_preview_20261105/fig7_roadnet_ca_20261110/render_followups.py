@@ -70,8 +70,7 @@ def headline(plt, style, directory):
 
 def impact(plt, style, directory):
     data = json.loads((directory / "rn_impact_summary.json").read_text())
-    rows = [row for row in data["points"] if row["status"] == "MEASURED"
-            and row["changed_fraction"] > 0]
+    rows = [row for row in data["points"] if row["status"] == "MEASURED"]
     if not any(row["kind"] != "ordinary" for row in rows):
         return
     figure, axis = plt.subplots(figsize=(3.55, 2.48), layout="constrained")
@@ -90,7 +89,9 @@ def impact(plt, style, directory):
                          [row["speedup"] for row in ordinary], marker=marker, s=15,
                          facecolors="white", edgecolors=color, linewidths=.8,
                          label=f"{label}: ordinary", zorder=4)
-    axis.set_xscale("log")
+    axis.set_xscale("symlog", linthresh=.001)
+    axis.set_xlim(-.0003, 125)
+    axis.xaxis.set_major_locator(FixedLocator((0, .001, .01, .1, 1, 10, 100)))
     axis.set_yscale("log")
     axis.xaxis.set_minor_locator(NullLocator())
     axis.yaxis.set_minor_locator(NullLocator())

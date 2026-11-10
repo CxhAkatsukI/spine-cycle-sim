@@ -47,13 +47,13 @@ estimate. The raw logs are in [board/](board/).
   This RN SSSP batch is not a sparse-propagation example despite having
   only eight insertions.
 - Exact shortest paths and minimum-ID labels on the old graph need up to
-  636 and 554 hops, respectively. The earlier G+R host's 256-superstep
-  ceiling cannot prepare those reference states. The updated RN workload
-  manifests use 1,024 as a stopping ceiling, not a fixed iteration count.
-  The CPU replay needs 460 nonempty SSSP rounds after the batch. The
-  [RN SSSP host patch](sssp_rn_host.patch) raises the host limit from
-  256 to 1,024 without changing the FPGA images. The aborted first
-  attempts are retained separately.
+  636 and 554 hops, respectively, beyond the original 256-round setting.
+  The RN workload manifests give G+R a 1,024-round runtime ceiling. The
+  [RN SSSP host patch](sssp_rn_host.patch) raises Spine's compiled host
+  ceiling from 256 to 1,024. These are stopping limits, not fixed
+  iteration counts, and neither FPGA image changed. The CPU replay needs
+  460 nonempty SSSP rounds after the batch. The aborted first attempts
+  are retained separately.
 - Use the selected Fig. 7 images and hosts, one measured pair per algorithm
   and no extra warm-up pair. Old-state construction is outside the resident
   wall. The frozen CC host's old-graph device bootstrap timed out before
@@ -61,7 +61,9 @@ estimate. The raw logs are in [board/](board/).
   exact CPU old-graph labels, then runs the device quiescence check and
   full-label audit before the existing host-pack-to-final-readback window.
   It does not change the FPGA image, measured update or final audit.
-  ResPR uses the existing matched derated image and fixed threshold.
+  G+R's CC receipt includes pack/upload and host seeding but places
+  physical update mapping before the timer. ResPR uses the existing
+  matched derated image and fixed threshold.
 
 ## Reproduce
 

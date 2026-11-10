@@ -197,6 +197,20 @@ int main(int argc, char **argv)
     if (weighted) {
         const unsigned rounds = check_warm_sssp(graph, before, after, updated_sources);
         std::cout << " warm_frontier_rounds=" << rounds;
+    } else {
+        std::vector<unsigned> component_sizes(vertices);
+        unsigned real_vertices = 0;
+        for (unsigned v = 0; v < vertices; ++v) {
+            // RN's missing external IDs are isolated; valid road vertices have neighbors.
+            if (graph[v].empty()) continue;
+            ++real_vertices;
+            ++component_sizes[before[v]];
+        }
+        const auto largest = std::max_element(component_sizes.begin(), component_sizes.end());
+        std::cout << " real_vertices=" << real_vertices
+                  << " old_largest_component_size=" << *largest
+                  << " old_largest_component_label=" << largest - component_sizes.begin()
+                  << " old_label_zero_component_size=" << component_sizes[0];
     }
     std::cout << '\n';
 }
