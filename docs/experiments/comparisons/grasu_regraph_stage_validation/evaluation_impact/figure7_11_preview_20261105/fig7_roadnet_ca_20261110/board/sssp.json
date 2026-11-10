@@ -1,0 +1,201 @@
+{
+  "status": "FAILED_RETAINED",
+  "workloads": {
+    "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-inputs/weighted_sssp/workloads.json",
+    "sha256": "4f5ae4becbc9b69789ecb54018bb315617c81cf80292fd047e54fda0711e26e6",
+    "bytes": 1212
+  },
+  "template": {
+    "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/hardware.json",
+    "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+    "bytes": 4520
+  },
+  "comparator": {
+    "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+    "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+    "bytes": 6792
+  },
+  "runner": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+    "sha256": "da8c46e49248167f3899ed58be08d2a676d6d78827a5538b0c253264a8b7e19d",
+    "bytes": 8638
+  },
+  "memory_gib": 16,
+  "memory_profile": "zfs-arc-clean-half-background5-v1",
+  "bdf": "0000:82:00.1",
+  "device": 0,
+  "warmup_pairs": 0,
+  "measured_pairs": 1,
+  "cases": [
+    {
+      "name": "insert-u8",
+      "graph": {
+        "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-inputs/weighted_sssp/insert-u8.graph",
+        "sha256": "ee121356e40c1bfe5808f8d6d406096daa3a009bc52adc157f6e4bca0c3f4199",
+        "bytes": 98057427
+      },
+      "updates": 8,
+      "logical_insertions": 8,
+      "batch": [
+        [
+          4857,
+          758191,
+          64,
+          1
+        ],
+        [
+          8909,
+          550738,
+          15,
+          1
+        ],
+        [
+          68275,
+          633624,
+          39,
+          1
+        ],
+        [
+          71548,
+          511309,
+          7,
+          1
+        ],
+        [
+          72023,
+          1863681,
+          12,
+          1
+        ],
+        [
+          93372,
+          1643355,
+          53,
+          1
+        ],
+        [
+          96274,
+          1795180,
+          24,
+          1
+        ],
+        [
+          100377,
+          177500,
+          29,
+          1
+        ]
+      ],
+      "changed_fraction": null,
+      "status": "FAILED_RETAINED",
+      "samples": [
+        {
+          "sample_index": 0,
+          "warmup": false,
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "arms": {},
+          "split_inputs": null,
+          "status": "FAILED_RETAINED",
+          "error": "ObservationError(\"memory PSI remained high for ten seconds: {'profile': 'zfs-arc-clean-half-background5-v1', 'mem_available_bytes': 72819695616, 'mem_free_bytes': 63512276992, 'arc': {'c_min': 8440012672, 'size': 60502089816, 'mru_evictable_data': 37836885504, 'mfu_evictable_data': 12136475648}, 'clean_evictable_bytes': 49973361152, 'discount_denominator': 2, 'effective_available_bytes': 88498957568, 'pressure_avg10': {'some': 5.36, 'full': 5.36}, 'pressure_ok': False, 'pressure_limits_avg10': {'some': 10, 'full': 5}}\")"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-inputs/weighted_sssp/workloads.json",
+      "sha256": "4f5ae4becbc9b69789ecb54018bb315617c81cf80292fd047e54fda0711e26e6",
+      "bytes": 1212
+    },
+    {
+      "path": "/data/chuxiao/checks/affected-fraction-fpga-20261106/hardware.json",
+      "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+      "bytes": 4520
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+      "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+      "bytes": 6792
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+      "sha256": "da8c46e49248167f3899ed58be08d2a676d6d78827a5538b0c253264a8b7e19d",
+      "bytes": 8638
+    },
+    {
+      "path": "/data/chuxiao/checks/spine-resident-host-optimization-20261025/resident-scratch-v3/weighted_sssp.host",
+      "sha256": "0061ca145086c55d752503a7f2b9c9ae316b4a7f6108d404d423833dd6d2bdde",
+      "bytes": 4313456
+    },
+    {
+      "path": "/data/feiyang/spine-hls-repair-builds/baseline-20261008-clean345f3df-v1/hw/xclbin/spine_partitioned_split_e2e.hw.xclbin",
+      "sha256": "2000ded183adffce4880792a3edcefa82eb462c460777fd536602397a77cf5dd",
+      "bytes": 58375377
+    },
+    {
+      "path": "/data/chuxiao/checks/gr-active-min-candidate-20261104-v1/weighted_sssp/sharded_k4_sssp_native_host",
+      "sha256": "8e5d95a07bf3166de28e9835bfd5cfddc3fcd62bbce8fd47bf8941b5eb8cafdd",
+      "bytes": 232424
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-sssp-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "2c01a79c3229ef6af7dcb45661a173c05de9b78d973517b11e5923d63a273784",
+      "bytes": 79628218
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/hardware.py",
+      "sha256": "0545ea158dc22cabdd28afc6f70f5b441158f91294b45dfae3a10e7adf91c335",
+      "bytes": 3529
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/memory_policy.py",
+      "sha256": "cb2a8e5508253b9963073463f9809194e153f867c943df2aa62cdbc28e0f0244",
+      "bytes": 5317
+    }
+  ],
+  "hardware_limitation": "reuse current weighted SSSP implementation; no new route",
+  "admission": {
+    "admitted": true,
+    "available_bytes": 91412507136,
+    "required_bytes": 51539607552,
+    "reservations": [],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/run-r8f012af8310b4072b709090648dbb279.service",
+      "limits": {
+        "memory.max": "17179869184",
+        "memory.high": "15032385536",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "zfs-arc-clean-half-background5-v1",
+      "mem_available_bytes": 75687591936,
+      "mem_free_bytes": 66336452608,
+      "arc": {
+        "c_min": 8440012672,
+        "size": 60494185160,
+        "mru_evictable_data": 37886244864,
+        "mfu_evictable_data": 12265864192
+      },
+      "clean_evictable_bytes": 50152109056,
+      "discount_denominator": 2,
+      "effective_available_bytes": 91412507136,
+      "pressure_avg10": {
+        "some": 4.88,
+        "full": 4.88
+      },
+      "pressure_ok": true,
+      "pressure_limits_avg10": {
+        "some": 10,
+        "full": 5
+      }
+    }
+  },
+  "error": "ObservationError(\"memory PSI remained high for ten seconds: {'profile': 'zfs-arc-clean-half-background5-v1', 'mem_available_bytes': 72819695616, 'mem_free_bytes': 63512276992, 'arc': {'c_min': 8440012672, 'size': 60502089816, 'mru_evictable_data': 37836885504, 'mfu_evictable_data': 12136475648}, 'clean_evictable_bytes': 49973361152, 'discount_denominator': 2, 'effective_available_bytes': 88498957568, 'pressure_avg10': {'some': 5.36, 'full': 5.36}, 'pressure_ok': False, 'pressure_limits_avg10': {'some': 10, 'full': 5}}\")"
+}

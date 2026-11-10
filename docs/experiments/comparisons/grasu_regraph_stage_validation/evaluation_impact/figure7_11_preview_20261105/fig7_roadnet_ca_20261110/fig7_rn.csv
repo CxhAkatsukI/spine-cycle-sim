@@ -1,0 +1,4 @@
+dataset,algorithm,actual_vertices,vertex_id_space,initial_directed_edges,logical_insertions,update_records,cpu_changed_vertices,spine_ms,gr_ms,speedup_gr_over_spine,status
+RN,weighted_sssp,1965206,1971281,5533214,8,8,916808,,,,ABORTED_MEMORY_PRESSURE
+RN,connected_components,1965206,1971281,5533214,8,16,0,,,,NOT_RUN
+RN,residual_pagerank,1965206,1971281,5539289,8,8,0,,,,ABORTED_MEMORY_PRESSURE

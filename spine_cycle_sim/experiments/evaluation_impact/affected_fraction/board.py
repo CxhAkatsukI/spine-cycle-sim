@@ -36,11 +36,12 @@ def counters(text):
 
 def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
+    warmup_pairs = args.warmup_pairs
     report = dict(status="PREPARING", workloads=identity(args.workloads),
                   template=identity(args.template), comparator=identity(args.comparator),
                   runner=identity(__file__), memory_gib=args.memory_gib,
                   memory_profile=args.memory_profile, bdf=args.bdf, device=args.device,
-                  warmup_pairs=1, measured_pairs=args.repetitions, cases=[])
+                  warmup_pairs=warmup_pairs, measured_pairs=args.repetitions, cases=[])
     journal = args.output / "campaign.json"
     save(journal, report)
     workloads = json.loads(args.workloads.read_text())
@@ -72,12 +73,12 @@ def run(args):
                     report["cases"].append(row)
                     report["status"] = "RUNNING"
                     save(journal, report)
-                    for sample in range(args.repetitions + 1):
+                    for sample in range(args.repetitions + warmup_pairs):
                         output = args.output / point["name"] / f"sample-{sample}"
                         output.mkdir(parents=True, exist_ok=False)
                         commands, prepared = hardware.commands(binding, workloads, point, output)
                         order = ("spine", "gr") if sample % 2 == 0 else ("gr", "spine")
-                        result = dict(sample_index=sample, warmup=sample == 0, order=order, arms={},
+                        result = dict(sample_index=sample, warmup=sample < warmup_pairs, order=order, arms={},
                                       split_inputs=prepared)
                         row["samples"].append(result)
                         save(journal, report)
@@ -114,7 +115,7 @@ def run(args):
                     row.update(status="MEASURED", medians_ms=medians,
                                speedup=medians["gr"] / medians["spine"])
                     save(journal, report)
-                    print(point["name"], point["changed_fraction"], row["speedup"], flush=True)
+                    print(point["name"], point.get("changed_fraction"), row["speedup"], flush=True)
         if not report["cases"]:
             raise ValueError("no requested workloads were selected")
         report["status"] = ("COMPLETED_WITH_FAILURES" if any(
@@ -135,6 +136,8 @@ def main():
     parser.add_argument("--continue-on-case-error", action="store_true",
                         help="retain a failed point and attempt the remaining frozen inputs")
     parser.add_argument("--repetitions", type=int, choices=(1, 3), default=3)
+    parser.add_argument("--warmup-pairs", type=int, choices=(0, 1), default=1,
+                        help="use zero for the one-pair Fig. 7 protocol")
     parser.add_argument("--memory-gib", type=int, choices=(8, 16, 24, 32), default=8)
     parser.add_argument("--memory-profile", choices=memory_policy.PROFILES, default=memory_policy.ARC_BACKGROUND)
     parser.add_argument("--wait-seconds", type=int, default=1800)

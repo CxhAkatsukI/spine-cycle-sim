@@ -33,7 +33,10 @@ def commands(binding, manifest, point, output):
     gr = [binding["gr_host"]["path"], binding["gr_image"]["path"], graph,
           str(output / "gr-state.txt")]
     if manifest["algorithm"] != "residual_pagerank":
-        gr.extend((source, "256"))
+        max_supersteps = manifest.get("gr_max_supersteps", 256)
+        if type(max_supersteps) is not int or max_supersteps <= 0:
+            raise ValueError("gr_max_supersteps must be a positive integer")
+        gr.extend((source, str(max_supersteps)))
     if manifest["algorithm"] == "connected_components":
         data = spine_cc_input.prepare(Path(graph), output / "cc-input")
         spine = [binding["spine_host"]["path"], "--xclbin", binding["spine_image"]["path"],

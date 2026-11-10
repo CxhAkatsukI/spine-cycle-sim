@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.sssp import Graph, distances, relax
-from spine_cycle_sim.experiments.evaluation_impact.affected_fraction import cc
+from spine_cycle_sim.experiments.evaluation_impact.affected_fraction import cc, hardware
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.pagerank import fan_in_batches
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.analyze import crossings, export
 from spine_cycle_sim.experiments.evaluation_impact.affected_fraction.select import select
@@ -47,6 +47,16 @@ class CcReferenceTest(unittest.TestCase):
         graph = Graph(5, [(1, 2, 1), (2, 3, 1)], [])
         self.assertEqual(cc.labels(graph), [0, 1, 1, 1, 4])
         self.assertEqual(cc.labels(graph, [(0, 3, 1), (3, 0, 1)]), [0, 0, 0, 0, 4])
+
+
+class BoardCommandsTest(unittest.TestCase):
+    def test_longer_resident_cap_is_workload_specific(self):
+        binding = {name: {"path": name} for name in ("spine_host", "spine_image", "gr_host", "gr_image")}
+        manifest = {"algorithm": "weighted_sssp", "source": 0}
+        point = {"graph": {"path": "graph"}}
+        for options, expected in (({}, "256"), ({"gr_max_supersteps": 1024}, "1024")):
+            commands, _ = hardware.commands(binding, manifest | options, point, Path("."))
+            self.assertEqual(commands["gr"][-2:], ["0", expected])
 
 
 class PageRankBatchTest(unittest.TestCase):

@@ -1,0 +1,294 @@
+{
+  "dataset": "RN",
+  "snap": {
+    "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/roadNet-CA.txt.gz",
+    "sha256": "383f7b14424530a9e25c392969a9c19dace32ebcfd141f0967a1433498c2acdd",
+    "bytes": 17892860
+  },
+  "vertices": 1965206,
+  "id_space": 1971281,
+  "directed_arcs": 5533214,
+  "undirected_roads": 2766607,
+  "seed": 20260729,
+  "algorithms": {
+    "weighted_sssp": {
+      "dataset": "RN",
+      "algorithm": "weighted_sssp",
+      "vertices": 1971281,
+      "edges": 5533214,
+      "source": 0,
+      "projection": "directed",
+      "points": [
+        {
+          "name": "insert-u8",
+          "graph": {
+            "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/weighted_sssp/insert-u8.graph",
+            "sha256": "ee121356e40c1bfe5808f8d6d406096daa3a009bc52adc157f6e4bca0c3f4199",
+            "bytes": 98057427
+          },
+          "updates": 8,
+          "logical_insertions": 8,
+          "batch": [
+            [
+              4857,
+              758191,
+              64,
+              1
+            ],
+            [
+              8909,
+              550738,
+              15,
+              1
+            ],
+            [
+              68275,
+              633624,
+              39,
+              1
+            ],
+            [
+              71548,
+              511309,
+              7,
+              1
+            ],
+            [
+              72023,
+              1863681,
+              12,
+              1
+            ],
+            [
+              93372,
+              1643355,
+              53,
+              1
+            ],
+            [
+              96274,
+              1795180,
+              24,
+              1
+            ],
+            [
+              100377,
+              177500,
+              29,
+              1
+            ]
+          ],
+          "changed_fraction": null
+        }
+      ],
+      "gr_max_supersteps": 1024
+    },
+    "connected_components": {
+      "dataset": "RN",
+      "algorithm": "connected_components",
+      "vertices": 1971281,
+      "edges": 5533214,
+      "source": 0,
+      "projection": "reciprocal",
+      "points": [
+        {
+          "name": "insert-u8",
+          "graph": {
+            "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/connected_components/insert-u8.graph",
+            "sha256": "70d09bd089982d945a76887253045f62af767c5053bac4fb0cd9da8989096606",
+            "bytes": 98057572
+          },
+          "updates": 16,
+          "logical_insertions": 8,
+          "batch": [
+            [
+              4857,
+              758191,
+              64,
+              1
+            ],
+            [
+              8909,
+              550738,
+              15,
+              1
+            ],
+            [
+              68275,
+              633624,
+              39,
+              1
+            ],
+            [
+              71548,
+              511309,
+              7,
+              1
+            ],
+            [
+              72023,
+              1863681,
+              12,
+              1
+            ],
+            [
+              93372,
+              1643355,
+              53,
+              1
+            ],
+            [
+              96274,
+              1795180,
+              24,
+              1
+            ],
+            [
+              100377,
+              177500,
+              29,
+              1
+            ],
+            [
+              177500,
+              100377,
+              51,
+              1
+            ],
+            [
+              511309,
+              71548,
+              25,
+              1
+            ],
+            [
+              550738,
+              8909,
+              9,
+              1
+            ],
+            [
+              633624,
+              68275,
+              33,
+              1
+            ],
+            [
+              758191,
+              4857,
+              12,
+              1
+            ],
+            [
+              1643355,
+              93372,
+              3,
+              1
+            ],
+            [
+              1795180,
+              96274,
+              44,
+              1
+            ],
+            [
+              1863681,
+              72023,
+              64,
+              1
+            ]
+          ],
+          "changed_fraction": null
+        }
+      ],
+      "gr_max_supersteps": 1024
+    },
+    "residual_pagerank": {
+      "dataset": "RN",
+      "algorithm": "residual_pagerank",
+      "vertices": 1971281,
+      "edges": 5539289,
+      "source": 0,
+      "projection": "residual_sink_free",
+      "points": [
+        {
+          "name": "insert-u8",
+          "graph": {
+            "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/residual_pagerank/insert-u8.graph",
+            "sha256": "6b89f258d96fba4e6573c45dc21befccaf26bf6c49d6be33a7cff73f2506f2a5",
+            "bytes": 98164189
+          },
+          "updates": 8,
+          "logical_insertions": 8,
+          "batch": [
+            [
+              4857,
+              758191,
+              64,
+              1
+            ],
+            [
+              8909,
+              550738,
+              15,
+              1
+            ],
+            [
+              68275,
+              633624,
+              39,
+              1
+            ],
+            [
+              71548,
+              511309,
+              7,
+              1
+            ],
+            [
+              72023,
+              1863681,
+              12,
+              1
+            ],
+            [
+              93372,
+              1643355,
+              53,
+              1
+            ],
+            [
+              96274,
+              1795180,
+              24,
+              1
+            ],
+            [
+              100377,
+              177500,
+              29,
+              1
+            ]
+          ],
+          "changed_fraction": null
+        }
+      ],
+      "epsilon": 1e-06
+    }
+  },
+  "normalization": {
+    "raw_records": 5533214,
+    "base_input_records": 5533214,
+    "post_input_records": 0,
+    "emitted_base_records_before_dedup": 5533214,
+    "emitted_post_records_before_dedup": 0,
+    "self_loops_removed": 0,
+    "max_normalized_vertex_id": 1971280,
+    "vertices": 1971281,
+    "matrix_dimensions": null,
+    "source_projection_reciprocal": false
+  },
+  "median_degree_source": 0,
+  "reciprocal": true,
+  "residual_sink_loops_added": 6075
+}

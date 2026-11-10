@@ -1,5 +1,9 @@
 # Selected Evaluation Delivery
 
+**Fig. 7 roadNet-CA (RN):** see the [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
+for the frozen three-algorithm inputs, CPU checks, and FPGA attempt status.
+It is separate from the frozen 24-row table and November 6 archive.
+
 **Additional cycle-validation pilot:** see the [November 7 SSSP study](fpga_cycle_validation_20261107/README.md)
 and [plot](fpga_cycle_validation_20261107/data/figures/fpga_cycle_validation.png).
 All four predeclared small synthetic holdouts are within 20% (maximum

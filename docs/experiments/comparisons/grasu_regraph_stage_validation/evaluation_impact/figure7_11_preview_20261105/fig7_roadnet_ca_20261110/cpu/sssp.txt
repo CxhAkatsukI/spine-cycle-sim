@@ -1,0 +1,1 @@
+vertices=1971281 static_arcs=5533214 update_records=8 changed_vertices=916808 old_max_solution_hops=636 new_max_solution_hops=584
