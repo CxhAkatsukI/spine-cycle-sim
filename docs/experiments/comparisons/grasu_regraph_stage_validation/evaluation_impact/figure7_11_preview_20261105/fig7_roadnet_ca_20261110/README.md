@@ -3,18 +3,26 @@
 This supplement belongs to the existing Fig. 7 handoff. It does not change
 the paper, the selected eight-dataset CSV, or the November 6 archive.
 
-## Result Status
+## Fig. 7 Results
 
 [RN data and status](fig7_rn.csv) · [Frozen inputs](input_manifest.json) ·
 [FPGA artifact bindings](hardware.json) · [CPU checks](cpu/) ·
-[Board receipts](board/) · [Raw board logs](board/raw_attempts.tar.gz)
+[Board receipts](board/) · [Initial attempts](board/raw_attempts.tar.gz) ·
+[RN follow-up scope](followups.md)
 
-No valid RN FPGA pair is available. The weighted SSSP and ResPR attempts
-both started the Spine arm but stopped during preparation when system-wide
-memory PSI remained above the board safety limit for ten seconds. Neither
-reached the paired resident timer. CC was not started while the same resource
-condition persisted. No speedups are inferred from incomplete arm logs or
-CPU results, and no RN bar is added to the preview.
+| Algorithm | Spine | G+R | Faster | Spine / G+R propagation rounds |
+| --- | ---: | ---: | --- | ---: |
+| [Weighted SSSP](board/sssp_measured.json) | 429.405 s | 12.890 s | G+R, 33.31x | 460 / 460 |
+| [CC](board/cc_measured.json) | 4.390 ms | 30.185 ms | Spine, 6.88x | 0 / 1 |
+| [ResPR](board/respr_measured.json) | 31.467 ms | 41.960 ms | Spine, 1.33x | 0 / 0 |
+
+All three pairs passed the final CPU-reference checks. G+R's CC round
+is the full convergence-check scan even though the batch changes no
+labels. Neither ResPR arm had a nonempty propagation round at the fixed
+epsilon of 1e-6. In SSSP, Spine's logged kernel span is 423.689 s of its
+429.405 s wall; the RN loss is not explained by excluding host relaunch.
+This is a single paired measurement per algorithm, not a repeatability
+estimate. The raw logs are in [board/](board/).
 
 ## Workload And Measurement
 
@@ -35,17 +43,24 @@ CPU results, and no RN bar is added to the preview.
   636 and 554 hops, respectively. The earlier G+R host's 256-superstep
   ceiling cannot prepare those reference states. The updated RN workload
   manifests use 1,024 as a stopping ceiling, not a fixed iteration count.
-  The aborted first SSSP attempt used 256; its log is retained as an
-  attempt, not admitted as performance evidence.
+  The CPU replay needs 460 nonempty SSSP rounds after the batch. The
+  [RN SSSP host patch](sssp_rn_host.patch) raises the host limit from
+  256 to 1,024 without changing the FPGA images. The aborted first
+  attempts are retained separately.
 - Use the selected Fig. 7 images and hosts, one measured pair per algorithm
   and no extra warm-up pair. Old-state construction is outside the resident
-  wall. CC uses the existing host-pack-to-final-readback variant. ResPR
-  uses the existing matched derated image and fixed threshold.
+  wall. The frozen CC host's old-graph device bootstrap timed out before
+  the measured update. The [RN CC host patch](cc_rn_host.patch) preloads
+  exact CPU old-graph labels, then runs the device quiescence check and
+  full-label audit before the existing host-pack-to-final-readback window.
+  It does not change the FPGA image, measured update or final audit.
+  ResPR uses the existing matched derated image and fixed threshold.
 
 ## Reproduce
 
 Run from the simulator repository root. `hardware.json` records the exact
-board artifacts and local paths. The external comparator is pinned in the
+board artifacts and local paths; `hardware_sssp_rn.json` and
+`hardware_cc_rn.json` bind the two RN-specific hosts. The external comparator is pinned in the
 board campaign receipt. Keep the same binary bindings and use an unused
 output directory for each attempt.
 
@@ -67,13 +82,20 @@ On the board host, after memory pressure stabilizes, run serially:
 ```sh
 comparator=/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py
 for algorithm in weighted_sssp connected_components residual_pagerank; do
+  template="$PWD/$handoff/hardware.json"
+  if [ "$algorithm" = weighted_sssp ]; then
+    template="$PWD/$handoff/hardware_sssp_rn.json"
+  elif [ "$algorithm" = connected_components ]; then
+    template="$PWD/$handoff/hardware_cc_rn.json"
+  fi
   systemd-run --user --wait --pipe --quiet \
     -p MemoryMax=16G -p MemoryHigh=14G -p MemorySwapMax=0 -p OOMPolicy=kill \
-    env PYTHONPATH="$PWD" python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.board \
+    env PYTHONPATH="$PWD" LD_LIBRARY_PATH=/opt/xilinx/xrt/lib \
+    python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.board \
     --workloads "$scratch/rn-inputs/$algorithm/workloads.json" \
-    --template "$PWD/$handoff/hardware.json" --comparator "$comparator" \
+    --template "$template" --comparator "$comparator" \
     --output "$scratch/board-$algorithm" --device 0 --bdf 0000:82:00.1 \
-    --memory-gib 16 --memory-profile zfs-arc-clean-half-background5-v1 \
-    --wait-seconds 300 --timeout-seconds 900 --warmup-pairs 0 --repetitions 1 || break
+    --memory-gib 16 --memory-profile memavailable-v1 \
+    --wait-seconds 300 --timeout-seconds 1200 --warmup-pairs 0 --repetitions 1
 done
 ```

@@ -1,0 +1,250 @@
+{
+  "status": "FAILED_RETAINED",
+  "workloads": {
+    "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/connected_components/workloads.json",
+    "sha256": "0a5ed0592955807bebc849ac429f1167c31338bf56fd6cf54768efd3cfab6d9d",
+    "bytes": 1913
+  },
+  "template": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fig7_roadnet_ca_20261110/hardware.json",
+    "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+    "bytes": 4520
+  },
+  "comparator": {
+    "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+    "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+    "bytes": 6792
+  },
+  "runner": {
+    "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+    "sha256": "da8c46e49248167f3899ed58be08d2a676d6d78827a5538b0c253264a8b7e19d",
+    "bytes": 8638
+  },
+  "memory_gib": 16,
+  "memory_profile": "memavailable-v1",
+  "bdf": "0000:82:00.1",
+  "device": 0,
+  "warmup_pairs": 0,
+  "measured_pairs": 1,
+  "cases": [
+    {
+      "name": "insert-u8",
+      "graph": {
+        "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/connected_components/insert-u8.graph",
+        "sha256": "70d09bd089982d945a76887253045f62af767c5053bac4fb0cd9da8989096606",
+        "bytes": 98057572
+      },
+      "updates": 16,
+      "logical_insertions": 8,
+      "batch": [
+        [
+          4857,
+          758191,
+          64,
+          1
+        ],
+        [
+          8909,
+          550738,
+          15,
+          1
+        ],
+        [
+          68275,
+          633624,
+          39,
+          1
+        ],
+        [
+          71548,
+          511309,
+          7,
+          1
+        ],
+        [
+          72023,
+          1863681,
+          12,
+          1
+        ],
+        [
+          93372,
+          1643355,
+          53,
+          1
+        ],
+        [
+          96274,
+          1795180,
+          24,
+          1
+        ],
+        [
+          100377,
+          177500,
+          29,
+          1
+        ],
+        [
+          177500,
+          100377,
+          51,
+          1
+        ],
+        [
+          511309,
+          71548,
+          25,
+          1
+        ],
+        [
+          550738,
+          8909,
+          9,
+          1
+        ],
+        [
+          633624,
+          68275,
+          33,
+          1
+        ],
+        [
+          758191,
+          4857,
+          12,
+          1
+        ],
+        [
+          1643355,
+          93372,
+          3,
+          1
+        ],
+        [
+          1795180,
+          96274,
+          44,
+          1
+        ],
+        [
+          1863681,
+          72023,
+          64,
+          1
+        ]
+      ],
+      "changed_fraction": null,
+      "status": "FAILED_RETAINED",
+      "samples": [
+        {
+          "sample_index": 0,
+          "warmup": false,
+          "order": [
+            "spine",
+            "gr"
+          ],
+          "arms": {},
+          "split_inputs": {
+            "source": {
+              "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/connected_components/insert-u8.graph",
+              "sha256": "70d09bd089982d945a76887253045f62af767c5053bac4fb0cd9da8989096606",
+              "bytes": 98057572
+            },
+            "graph": {
+              "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/graph.slice",
+              "sha256": "aa6e1f494dd69f8ed2468dbbfa246d8a63f4da1937abafeec730bfe8bb628eb1",
+              "bytes": 109123711
+            },
+            "update": {
+              "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/update.slice",
+              "sha256": "a8402c42148a958b2df1908f8456c8331f621a681b83eac2e2b3566c51602388",
+              "bytes": 308
+            },
+            "vertices": 1971281,
+            "edges": 5533214,
+            "updates": 16
+          },
+          "status": "FAILED_RETAINED",
+          "error": "TimeoutExpired(['/usr/bin/taskset', '-c', '124,125', '/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair', '--xclbin', '/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin', '--hot', 'balanced', '--mode', 'partial', '--samples', '1', '--slice', '/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/graph.slice', '--update', '/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/update.slice'], 899.9999887400772)"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/rn-ready/connected_components/workloads.json",
+      "sha256": "0a5ed0592955807bebc849ac429f1167c31338bf56fd6cf54768efd3cfab6d9d",
+      "bytes": 1913
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/docs/experiments/comparisons/grasu_regraph_stage_validation/evaluation_impact/figure7_11_preview_20261105/fig7_roadnet_ca_20261110/hardware.json",
+      "sha256": "dbf63be10ad301b439d2ac649c05d3c54e5ca271b4c587ed08f589aa867f4980",
+      "bytes": 4520
+    },
+    {
+      "path": "/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py",
+      "sha256": "0fcd0d63aab314b90e957ede40cad53fa9f257199ad9f9bb4e8ce8eca9709b3f",
+      "bytes": 6792
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/board.py",
+      "sha256": "da8c46e49248167f3899ed58be08d2a676d6d78827a5538b0c253264a8b7e19d",
+      "bytes": 8638
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair",
+      "sha256": "f16bb3c7cd69d461e4fd35ed2b2db3933f717a29e66f5984f5808ea4ac9622a1",
+      "bytes": 201112
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin",
+      "sha256": "0939fc5b51133cf79954c266434c502f1ac8cd9f541a0200d5f331931e373d28",
+      "bytes": 59048346
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/gr-active-min-wall-host-v1/connected_components/sharded_k4_cc_native_host",
+      "sha256": "b72c20fec3bc7130edf430ff0006963e3112dfa57ea31bc96e38246b303f7412",
+      "bytes": 243400
+    },
+    {
+      "path": "/data/chuxiao/checks/source-retention-repair-20261104/seele-return-v1-cc-banked-source-bursts-final/returned/route/candidate.hw.xclbin",
+      "sha256": "ce08ac516cf3786f9831f0a54641c830f3f501618b3b0a1a466e8e6c30eab2c5",
+      "bytes": 79624812
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/evaluation_impact/affected_fraction/hardware.py",
+      "sha256": "0e30084d56787994d3fd985347ef9372adb38fcfc72e5b68d13fb6c34ff60f89",
+      "bytes": 3751
+    },
+    {
+      "path": "/data/chuxiao/worktrees/spine-impact-crossover-20261106/spine_cycle_sim/experiments/original_regraph_execution/hardware/board_execution/memory_policy.py",
+      "sha256": "cb2a8e5508253b9963073463f9809194e153f867c943df2aa62cdbc28e0f0244",
+      "bytes": 5317
+    }
+  ],
+  "hardware_limitation": "current routed CC implementation; raw skew report remains unavailable",
+  "admission": {
+    "admitted": true,
+    "available_bytes": 74026450944,
+    "required_bytes": 51539607552,
+    "reservations": [],
+    "cgroup": {
+      "path": "/sys/fs/cgroup/user.slice/user-2009.slice/user@2009.service/app.slice/run-r41dbcfd6948c4e08b01db3b7e1ddb715.service",
+      "limits": {
+        "memory.max": "17179869184",
+        "memory.high": "15032385536",
+        "memory.swap.max": "0",
+        "memory.oom.group": "1"
+      }
+    },
+    "policy": "full_finite_budgets_plus_reserve_atomic_lease",
+    "host_swap_disabled_verified": false,
+    "physical_memory_observation": {
+      "profile": "memavailable-v1",
+      "effective_available_bytes": 74026450944,
+      "pressure_ok": true
+    }
+  },
+  "error": "TimeoutExpired(['/usr/bin/taskset', '-c', '124,125', '/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-stream-admit-2315cae-offline-host-v1/host_cc_repair', '--xclbin', '/data/chuxiao/checks/source-retention-repair-20261104/cc-stream-direct-board-20261106-v1/image/spine_partitioned_split_e2e.engine-4-1-2-2-1.hw.xclbin', '--hot', 'balanced', '--mode', 'partial', '--samples', '1', '--slice', '/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/graph.slice', '--update', '/data/chuxiao/checks/fig7-roadnet-ca-20261110.z7UCbK/board-connected_components-memavailable/insert-u8/sample-0/cc-input/update.slice'], 899.9999887400772)"
+}

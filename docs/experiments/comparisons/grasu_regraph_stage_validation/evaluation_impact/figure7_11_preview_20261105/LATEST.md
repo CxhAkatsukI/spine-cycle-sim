@@ -1,7 +1,9 @@
 # Selected Evaluation Delivery
 
 **Fig. 7 roadNet-CA (RN):** see the [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
-for the frozen three-algorithm inputs, CPU checks, and FPGA attempt status.
+for all three paired FPGA results, frozen inputs and CPU checks. G+R is
+33.31x faster on RN SSSP; Spine is 6.88x faster on RN CC and 1.33x faster
+on RN ResPR. The supplement also tracks the other RN experiments.
 It is separate from the frozen 24-row table and November 6 archive.
 
 **Additional cycle-validation pilot:** see the [November 7 SSSP study](fpga_cycle_validation_20261107/README.md)

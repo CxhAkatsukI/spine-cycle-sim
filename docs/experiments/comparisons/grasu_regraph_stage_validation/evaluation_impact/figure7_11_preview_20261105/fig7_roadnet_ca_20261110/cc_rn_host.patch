@@ -1,0 +1,17 @@
+diff --git a/tests/test_integration/host_cc_repair.cpp b/tests/test_integration/host_cc_repair.cpp
+index 14e8060..bcf8447 100644
+--- a/tests/test_integration/host_cc_repair.cpp
++++ b/tests/test_integration/host_cc_repair.cpp
+@@ -211,6 +211,12 @@ public:
+         int status=-1;transfer_.enqueueReadBuffer(result_,CL_TRUE,0,4,&status);require(status==0,"owner initialization");
+         m.phases["raw_reload_owner_ms"]=elapsed(total);
+         auto start=Clock::now();run(SPINE_CC_BOOTSTRAP);m.phases["identity_init_ms"]=elapsed(start);
++        // The stream requests current values from state_ for the bootstrap
++        // frontier. Verify the resident labels through normal device convergence.
++        start=Clock::now();
++        const auto old_labels=cc_host::labels(graph,n_);
++        write(state_,0,old_labels.size()*sizeof(old_labels[0]),old_labels.data());
++        m.phases["cpu_old_label_preload_ms"]=elapsed(start);
+         converge(m);m.total_ms=elapsed(total);return m;
+     }
+     Measurement update(const std::vector<Record> &records,bool full) {

@@ -1,0 +1,13 @@
+diff --git a/tests/test_integration/host_resident_benchmark.hpp b/tests/test_integration/host_resident_benchmark.hpp
+index e61a5a1..d20037a 100644
+--- a/tests/test_integration/host_resident_benchmark.hpp
++++ b/tests/test_integration/host_resident_benchmark.hpp
+@@ -178,7 +178,7 @@ static ResidentBenchmarkResult run_resident_benchmark(
+     const std::vector<DynamicUpdate> &updates,
+     size_t logical_updates,
+     uint32_t source,
+-    unsigned iteration_limit = 256
++    unsigned iteration_limit = 1024
+ ) {
+     require(SPINE_ALGORITHM_KIND != kFullPagerank && iteration_limit > 0,
+             "resident benchmark requires SSSP/CC/ResPR and a positive round limit");
