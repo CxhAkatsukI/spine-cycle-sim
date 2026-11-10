@@ -10,14 +10,21 @@ This note tracks the November 10 manuscript snapshot. The paper is unchanged.
 [Batch-size preview](followup/rn_batch_size.png) ·
 [Batch work preview](followup/rn_batch_work.png) ·
 [Ligra timings](followup/rn_ligra_trifoliate.csv) ·
-[Inputs and CPU receipts](followup/workloads_and_ligra.tar.gz)
+[Inputs and CPU receipts](followup/workloads_and_ligra.tar.gz) ·
+[Raw follow-up FPGA logs](followup/fpga_raw.tar.gz)
 
 ## Measured Results
 
-This snapshot contains 16 validated pairs out of 18 planned. The six
-controlled SSSP points and all four ordinary points for each of CC and
-ResPR are complete. The 512- and 4,096-insertion ordinary SSSP points
-are still pending.
+All 18 planned FPGA pairs passed the reference checks: 12 ordinary batches
+(three algorithms by four batch sizes) and six controlled SSSP shortcuts.
+The ordinary batch winners are:
+
+| Logical insertions | Weighted SSSP | CC | Residual PageRank |
+| ---: | ---: | ---: | ---: |
+| 8 (Fig. 7) | G+R 33.31x | Spine 6.88x | Spine 1.33x |
+| 64 | G+R 46.86x | Spine 4.77x | Spine 2.82x |
+| 512 | G+R 81.49x | Spine 4.94x | Spine 3.25x |
+| 4,096 | G+R 112.39x | Spine 1.02x | Spine 2.08x |
 
 On the controlled one-edge SSSP sweep, Spine is 2.05x faster at
 10,972 changed vertices (0.558%). G+R is 5.08x faster at 202,544 changed
@@ -26,10 +33,13 @@ of winner, not a measured or universal crossover fraction. At the
 largest controlled point (50.76% changed), both systems run 610 nonempty
 rounds. G+R takes 16.902 s and Spine takes 512.739 s (30.34x for G+R).
 
-The ordinary 64-insertion SSSP batch changes 1,116,781 distances (56.83%).
-Both arms run 300 rounds. G+R takes 8.759 s and Spine takes 410.420 s
-(46.86x for G+R). Spine's OpenCL reader/compute event span totals
-405.801 s; that span does not isolate memory stalls from other device work.
+The four ordinary SSSP batches change 46.65%, 56.83%, 84.67% and 95.64%
+of real vertex distances, respectively. At 4,096 insertions both arms run
+140 rounds; G+R takes 4.587 s and Spine takes 515.572 s. Spine's OpenCL
+reader/compute event spans account for approximately 99% of its measured
+wall time across these four batches. These spans do not isolate memory
+stalls from other device work, but host overhead alone does not explain
+the loss.
 
 For CC, the largest old component already has minimum label zero and
 contains 1,957,027 of 1,965,206 real vertices. In an insertion-only
@@ -72,8 +82,8 @@ from the same distribution.
 `MEASURED` in the FPGA CSV means both arms passed their final reference
 checks. Each row uses one measured pair (Spine first, G+R second, no
 extra warm-up); the ordinary 8-update rows reuse the Fig. 7 measurements.
-There is no repeatability or run-order estimate. Blank timing and counter fields indicate
-missing observations, not zeros. Spine's SSSP work counters count visits
+There is no repeatability or run-order estimate. Blank timing and counter
+fields indicate missing observations, not zeros. Spine's SSSP work counters count visits
 and requests, not unique edges or distinct sources. CC reports relaxation
 edge visits and row queries in its own fields. G+R reports the layout's slot
 count per execution, not measured edge reads or bytes. The Ligra timings

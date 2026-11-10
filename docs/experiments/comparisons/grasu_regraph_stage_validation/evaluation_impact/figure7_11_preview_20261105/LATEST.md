@@ -5,8 +5,9 @@ and [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
 for all three paired FPGA results, frozen inputs and CPU checks. G+R is
 33.31x faster on RN SSSP; Spine is 6.88x faster on RN CC and 1.33x faster
 on RN ResPR. The [RN follow-up](fig7_roadnet_ca_20261110/followups.md)
-adds batch latency, induced work, affected-fraction measurements and
-local Ligra controls.
+adds 18 correctness-checked FPGA pairs in total, including the three Fig. 7
+pairs, plus 12 local Ligra timings. It covers batch latency, induced work
+and an SSSP affected-fraction sweep.
 It is separate from the frozen 24-row table and November 6 archive.
 
 **Additional cycle-validation pilot:** see the [November 7 SSSP study](fpga_cycle_validation_20261107/README.md)
