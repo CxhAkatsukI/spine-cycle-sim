@@ -4,6 +4,8 @@ RN means the full SNAP roadNet-CA graph, not R19 or a compact road slice.
 This note tracks the November 10 manuscript snapshot. The paper is unchanged.
 
 [FPGA sweep data](followup/rn_fpga_sweep.csv) ·
+[Reported FPGA timing fields](followup/rn_fpga_timing_records.csv) ·
+[Measured crossing brackets](followup/rn_impact_summary.json) ·
 [Ligra timings](followup/rn_ligra_trifoliate.csv) ·
 [Inputs and CPU receipts](followup/workloads_and_ligra.tar.gz)
 
@@ -38,7 +40,50 @@ from the same distribution.
 checks. Each row uses one measured pair; the ordinary 8-update rows
 reuse the Fig. 7 measurements. Blank timing and counter fields indicate
 missing observations, not zeros. Spine's SSSP work counters count visits
-and requests, not unique edges or distinct sources. The Ligra timings
+and requests, not unique edges or distinct sources. CC reports relaxation
+edge visits and row queries in its own fields. G+R reports the layout's slot
+count per execution, not measured edge reads or bytes. The Ligra timings
 include CPU CSR rebuild and incremental propagation but exclude old-state
 preparation and reference validation. They are local comparison data,
 not a substitute for the manuscript's cross-platform result.
+
+The timing-field CSV reports each host log's named fields as emitted.
+Concurrent kernel events can overlap and some counters exclude maintenance
+or preparation; do not sum these fields or subtract their sum from wall
+time to infer host overhead.
+
+## Reproduce
+
+Run from the simulator repository root, after generating the three RN graphs
+and compiling the two reference programs in [the Fig. 7 guide](README.md#reproduce).
+Use unused output directories.
+
+```sh
+export PYTHONPATH="$PWD"
+for algorithm in weighted_sssp connected_components residual_pagerank; do
+  python3 "$handoff/prepare_batch_sweep.py" \
+    "$scratch/rn-inputs/$algorithm/workloads.json" "$scratch/rn-sweep/$algorithm" \
+    "$scratch/check_old_state" "$scratch/pagerank_reference"
+done
+python3 "$handoff/prepare_batch_sweep.py" \
+  "$scratch/rn-inputs/weighted_sssp/workloads.json" "$scratch/rn-sweep/sssp-control" \
+  "$scratch/check_old_state" "$scratch/pagerank_reference" --controlled-sssp
+```
+
+Use the same board command and hardware bindings as in the Fig. 7 guide,
+with input `$scratch/rn-sweep/$series/workloads.json` and output
+`$scratch/board-sweep-$series`. The ordinary campaigns pass
+`--point ordinary-64 --point ordinary-512 --point ordinary-4096` to reuse
+the measured Fig. 7 points rather than rerun them; the `sssp-control` campaign
+uses the weighted SSSP binding and all six points. Add
+`--continue-on-case-error --timeout-seconds 1800` to retain a failed point
+without ending its series. Do not skip failed points when reporting coverage.
+
+The collector expects the original scratch layout: the three Fig. 7
+campaign names in `collect_followups.py`, the four follow-up series above,
+and the archived `ligra/` receipts. Regenerate tables and preserve the
+completed follow-up board logs with:
+
+```sh
+python3 "$handoff/collect_followups.py" "$scratch" /tmp/rn-tables --archive-logs
+```

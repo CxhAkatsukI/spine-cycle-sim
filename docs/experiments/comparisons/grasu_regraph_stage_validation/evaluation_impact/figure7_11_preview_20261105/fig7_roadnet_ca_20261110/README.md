@@ -10,6 +10,10 @@ the paper, the selected eight-dataset CSV, or the November 6 archive.
 [Board receipts](board/) · [Initial attempts](board/raw_attempts.tar.gz) ·
 [RN follow-up scope](followups.md)
 
+[Nine-dataset plotting CSV](followup/fig7_nine_datasets.csv): the frozen
+24 observations and three RN measurements, including the RN SSSP loss.
+The `source_csv` values are relative to this README, not to the CSV.
+
 | Algorithm | Spine | G+R | Faster | Spine / G+R propagation rounds |
 | --- | ---: | ---: | --- | ---: |
 | [Weighted SSSP](board/sssp_measured.json) | 429.405 s | 12.890 s | G+R, 33.31x | 460 / 460 |
@@ -83,10 +87,13 @@ On the board host, after memory pressure stabilizes, run serially:
 comparator=/home/chuxiao/grasu-regraph-sim-aligned/scripts/compare_resident_fpga_logs.py
 for algorithm in weighted_sssp connected_components residual_pagerank; do
   template="$PWD/$handoff/hardware.json"
+  output=board-respr-memavailable
   if [ "$algorithm" = weighted_sssp ]; then
     template="$PWD/$handoff/hardware_sssp_rn.json"
+    output=board-weighted_sssp-cap1024
   elif [ "$algorithm" = connected_components ]; then
     template="$PWD/$handoff/hardware_cc_rn.json"
+    output=board-cc-preloaded
   fi
   systemd-run --user --wait --pipe --quiet \
     -p MemoryMax=16G -p MemoryHigh=14G -p MemorySwapMax=0 -p OOMPolicy=kill \
@@ -94,7 +101,7 @@ for algorithm in weighted_sssp connected_components residual_pagerank; do
     python3 -m spine_cycle_sim.experiments.evaluation_impact.affected_fraction.board \
     --workloads "$scratch/rn-inputs/$algorithm/workloads.json" \
     --template "$template" --comparator "$comparator" \
-    --output "$scratch/board-$algorithm" --device 0 --bdf 0000:82:00.1 \
+    --output "$scratch/$output" --device 0 --bdf 0000:82:00.1 \
     --memory-gib 16 --memory-profile memavailable-v1 \
     --wait-seconds 300 --timeout-seconds 1200 --warmup-pairs 0 --repetitions 1
 done
