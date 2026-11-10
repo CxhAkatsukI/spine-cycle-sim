@@ -1,0 +1,4 @@
+dataset,vertices_allocated,old_edges,insertions,source,old_reachable,new_reachable,changed_vertices,cpu_frontier_waves,cpu_frontier_edge_visits,old_width_fnv1a64,new_width_fnv1a64,oracle_status
+fixture,6,5,2,0,5,5,2,2,1,7e86d77549d894bc,54cf940c99b7834c,PASS
+AU,515281,390847,8,11,89472,89472,1,1,0,57b2383496a2bac1,150a161869db8d3c,PASS
+RN,1971281,5533214,8,0,1957027,1957027,12328,348,47722,99872c2eb0b54cdb,b1ad3e87223f9b35,PASS

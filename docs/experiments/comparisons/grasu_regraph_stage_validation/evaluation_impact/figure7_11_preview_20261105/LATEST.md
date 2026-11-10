@@ -1,5 +1,9 @@
 # Selected Evaluation Delivery
 
+**Widest-path pilot:** see the [AU/RN reference and FPGA status](widest_path_20261110/README.md).
+The two independent CPU checks agree; there is no widest-path board timing
+or speedup in this supplement.
+
 **Fig. 7 roadNet-CA (RN):** see the [nine-dataset preview](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.png)
 and [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
 for all three paired FPGA results, frozen inputs and CPU checks. G+R is
