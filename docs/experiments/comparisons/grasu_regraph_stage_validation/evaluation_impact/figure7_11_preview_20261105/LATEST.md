@@ -1,5 +1,12 @@
 # Selected Evaluation Delivery
 
+**Fig. 7 ResPR host refresh (November 15):** see the
+[FPGA replay supplement](current_fpga/respr_host_refresh_20261115/README.md)
+and [before/after CSV](current_fpga/respr_host_refresh_20261115/data/fig7_respr_before_after.csv)
+for nine new Spine timings, including RN. All nine pass the CPU check and
+have zero propagation rounds. The G+R timings are historical. This
+supplement does not replace the selected 24-row table or November 6 archive.
+
 **Widest-path pilot:** see the [AU/RN reference and FPGA status](widest_path_20261110/README.md).
 The two independent CPU checks agree; there is no widest-path board timing
 or speedup in this supplement.

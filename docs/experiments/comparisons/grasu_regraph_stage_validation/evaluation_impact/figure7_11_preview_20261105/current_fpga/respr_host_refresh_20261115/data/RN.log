@@ -1,0 +1,10 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/chuxiao/checks/source-retention-repair-20261104/../fig7-roadnet-ca-20261110.z7UCbK/rn-ready/residual_pagerank/insert-u8.graph vertices=1971281 initial_edges=5539289 logical_updates=8 physical_updates=8 final_edges=5539297
+Using XCL_DEVICE_INDEX=0
+SPINE_DEVICE bdf=0000:82:00.1
+VERTEX_LIFECYCLE_HW_PASS vertex=1971280 transitions=deactivate,activate
+RESIDENT_CORRECTION_CACHE scope=old_graph_only_single_batch bytes=77353032 preparation_ms=163.183 included_in_dynamic_wall=0
+SPINE_HOST_MAINT_PHASE arguments_ms=0.022801 kernel_wall_ms=0.193976 readback_wall_ms=0.044861
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8 physical_updates=8 target_level=0 path=2 hot_edges=0 cold_edges=8
+RESIDENT_CORRECTION mode=old_incoming_fp32_sparse_replay dense_dangling_fallback=0 host_update_and_state_upload_in_dynamic_wall=1
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/chuxiao/checks/source-retention-repair-20261104/../fig7-roadnet-ca-20261110.z7UCbK/rn-ready/residual_pagerank/insert-u8.graph:final vertices=1971281 source=0 iterations=0 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=2.74212 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+SPINE_HW_TIMING algorithm=thresholded_residual_pagerank logical_updates=8 physical_updates=8 maintenance_input_ms=0.057291 maintenance_kernel_ms=0.144575 maintenance_output_ms=0.025181 maintenance_device_e2e_ms=0.227047 maintenance_setup_inclusive_ms=0.344311 iterations=0 input_migration_ms=0 reader_ms=0 compute_ms=0 kernel_span_ms=0 output_migration_ms=0 device_e2e_ms=0 setup_inclusive_ms=0 host_dynamic_preparation_ms=2.28052 dynamic_device_e2e_ms=0.227047 dynamic_kernel_ms=0.144575 dynamic_setup_inclusive_ms=2.62483 timing_scope=maintenance_plus_iterative_algorithm_excludes_static_graph_setup
