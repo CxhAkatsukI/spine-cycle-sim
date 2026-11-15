@@ -7,13 +7,12 @@ have 4.23%--15.69% absolute error with one development-calibrated reader
 delay. This is small synthetic SSSP device-window evidence, not large-graph,
 all-algorithm or ten-stage calibration. Earlier figures remain unchanged.
 
-**Selected delivery:** [Figures 7--11 plus G/R controls](LATEST.md), with a
-single complete download, [24-row Fig. 7 CSV](fig7_complete.csv), all six
-PDF/PNG previews, Python plotting code and source receipts. The new archive
-includes all eight direct CC board pairs; `CURRENT.md` and
-`current_review.tar.gz` below are historical frozen selections, not the
-latest delivery. The remaining sections retain earlier checkpoints and
-their limitations for provenance.
+**Selected delivery:** [Figures 7--11 plus G/R controls](LATEST.md).
+For Fig. 7 use the [current 24-row CSV](fig7_complete.csv) or
+[27-row CSV including RN](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.csv).
+Both use the November 15 Spine ResPR timings. The November 6 archive
+and original previews are frozen and contain the previous ResPR timings.
+The remaining sections retain earlier checkpoints for provenance.
 
 **Additional FPGA experiment:** the
 [November 7 affected-fraction supplement](affected_fraction_fpga_20261107/README.md)
@@ -45,7 +44,7 @@ are colocated; the earlier simulator figure remains separate.
 The [direct CC board campaign](current_fpga/cc_direct_board_v1/README.md)
 has completed all eight correctness-checked pairs. Spine wins by
 1.18x--26.61x on these insertion traces. The
-[combined Fig. 7 preview](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.png)
+[November 6 Fig. 7 preview](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.png)
 contains all 24 SSSP/CC/ResPR pairs, using the
 [eight new CC rows](current_fpga/cc_direct_board_v1/data/fig7_cc.csv)
 and the sixteen frozen SSSP/ResPR rows below. Six CC batches leave labels

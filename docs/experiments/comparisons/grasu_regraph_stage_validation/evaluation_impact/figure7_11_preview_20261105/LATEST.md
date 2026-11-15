@@ -1,25 +1,23 @@
 # Selected Evaluation Delivery
 
-**Fig. 7 ResPR host refresh (November 15):** see the
-[FPGA replay supplement](current_fpga/respr_host_refresh_20261115/README.md)
-and [before/after CSV](current_fpga/respr_host_refresh_20261115/data/fig7_respr_before_after.csv)
-for nine new Spine timings, including RN. All nine pass the CPU check and
-have zero propagation rounds. The G+R timings are historical. This
-supplement does not replace the selected 24-row table or November 6 archive.
+**Fig. 7 ResPR host refresh (November 15):** the
+[main Fig. 7 CSV](fig7_complete.csv) and
+[nine-dataset CSV](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.csv)
+now use the new Spine timings. All nine replays passed the CPU check and
+had zero propagation rounds. G+R, SSSP, and CC are unchanged. See the
+[replay notes and raw logs](current_fpga/respr_host_refresh_20261115/README.md).
+Use these live CSVs to redraw Fig. 7; the archived plots still show the
+older ResPR timings.
 
 **Widest-path pilot:** see the [AU/RN reference and FPGA status](widest_path_20261110/README.md).
 The two independent CPU checks agree; there is no widest-path board timing
 or speedup in this supplement.
 
-**Fig. 7 roadNet-CA (RN):** see the [nine-dataset preview](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.png)
-and [November 10 supplement](fig7_roadnet_ca_20261110/README.md)
-for all three paired FPGA results, frozen inputs and CPU checks. G+R is
-33.31x faster on RN SSSP; Spine is 6.88x faster on RN CC and 1.33x faster
-on RN ResPR. The [RN follow-up](fig7_roadnet_ca_20261110/followups.md)
-adds 18 correctness-checked FPGA pairs in total, including the three Fig. 7
-pairs, plus 12 local Ligra timings. It covers batch latency, induced work
-and an SSSP affected-fraction sweep.
-It is separate from the frozen 24-row table and November 6 archive.
+**Fig. 7 roadNet-CA (RN):** see the [RN results and original FPGA receipts](fig7_roadnet_ca_20261110/README.md).
+G+R is 33.31x faster on RN SSSP; Spine is 6.88x faster on RN CC and
+15.30x faster on RN ResPR against the historical G+R timing. The separate
+[RN follow-up](fig7_roadnet_ca_20261110/followups.md) retains the original
+batch latency, induced work, SSSP affected-fraction sweep, and Ligra data.
 
 **Additional cycle-validation pilot:** see the [November 7 SSSP study](fpga_cycle_validation_20261107/README.md)
 and [plot](fpga_cycle_validation_20261107/data/figures/fpga_cycle_validation.png).
@@ -33,12 +31,11 @@ source-control delivery**, in the original handoff directory. The paper is
 unchanged. This update incorporates the eight completed CC board pairs;
 it does not claim a new rerun of every figure.
 
-Download [the complete data/code/preview archive](evaluation_review_20261106.tar.gz).
-The [file manifest](evaluation_review_20261106.manifest.json) records the
-selection, checksums and all 24 Fig. 7 outcomes. Unlike the historical
-`current_review.tar.gz`, this archive includes all eight CC measurements
-and the LJ08 ResPR measurement. The old archive and `CURRENT.md` remain
-frozen and are **not the selected delivery**.
+Download the [frozen November 6 data/code/preview archive](evaluation_review_20261106.tar.gz)
+and its [file manifest](evaluation_review_20261106.manifest.json) for
+reproducibility. It includes all eight CC measurements and the LJ08
+ResPR measurement, but predates the November 15 host refresh.
+`current_review.tar.gz` and `CURRENT.md` are earlier snapshots.
 
 The separate November 7
 [affected-fraction FPGA supplement](affected_fraction_fpga_20261107/README.md)
@@ -59,16 +56,16 @@ The frozen November 6 download does not include this supplement.
 
 ## Data And Previews
 
-All paths below are relative to this handoff directory. Downloading the
-archive retrieves the selected CSVs, scopes, compact raw receipts, plotting
-code, the supplied GraphyFlow reference zip, and all six PDF/PNG previews.
+All paths below are relative to this handoff directory. The frozen archive
+contains the November 6 CSVs, scopes, compact raw receipts, plotting code,
+GraphyFlow reference zip, and all six PDF/PNG previews.
 Large graph/state arrays, xclbins and toolchains are indexed by path/hash,
 not duplicated in the archive.
 
 | Item | Selected data | Preview | Coverage |
 | --- | --- | --- | --- |
 | G/R vs. public-source ports | [Stage CSV](current_fpga/gr_controls.csv), [scope](current_fpga/gr_scope.json) | [PNG](current_fpga/figures/gr_current_source_controls.png), [PDF](current_fpga/figures/gr_current_source_controls.pdf) | 3 G + 8 R hardware controls; one sample per arm |
-| Fig. 7 | [Complete 24-row CSV](fig7_complete.csv) | [PNG](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.png), [PDF](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.pdf) | 8 datasets x SSSP/CC/ResPR; every pair measured and favors Spine |
+| Fig. 7 | [Current 24-row CSV](fig7_complete.csv), [27 rows with RN](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.csv) | November 6 snapshot: [PNG](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.png), [PDF](current_fpga/cc_direct_board_v1/figures/fig7_resident_checkpoint.pdf) | All original eight favor Spine; RN SSSP favors G+R |
 | Fig. 8a | [Ten-batch CSV](fresh_simulator/portable_fig8_headroom_v1/fig8_ten_batch.csv) | [PNG](fresh_simulator/portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.png), [PDF](fresh_simulator/portable_fig8_headroom_v1/figures/fig8_update_prediction_headroom.pdf) | Same-host L4 follow-up, AU/SU/WK/SO/PK; measured CPU preparation plus predicted device/transfer/launch |
 | Fig. 8b | [Fixed-total batch sweep](fresh_simulator/portable_fig8_headroom_v1/batch_sweep/fig8_batch_sensitivity.csv) | Same Fig. 8 preview | 131,072 updates in 10/100/1,000 batches on the same host |
 | Fig. 9 | [Nine ratio rows](fresh_simulator/fig9_memory_energy_rows.csv), [18 absolute arms](fresh_simulator/fig9_arms.csv) | [PNG](fresh_simulator/figures/fig9_memory_hbm_prediction.png), [PDF](fresh_simulator/figures/fig9_memory_hbm_prediction.pdf) | AU/SU/WK x SSSP/CC/ResPR; simulated bytes and DRAMSim3 HBM energy |
@@ -90,12 +87,12 @@ checked final state/readback; old-graph loading/convergence is outside.
 Host preparation/waits/relaunch are included according to each row's
 `boundary`. CC uses eight logical undirected insertions (16 physical records);
 SSSP and ResPR use eight records. The ranges are SSSP 2.03x--24.01x,
-CC 1.18x--26.61x, ResPR 1.51x--19.94x for Spine. The complete CSV is a
-derived union, not a replacement for the frozen source CSVs. `source_csv`
-locates each original row; source-specific columns remain present and
-inapplicable fields are blank.
+CC 1.18x--26.61x, and ResPR 8.75x--61.26x for Spine on the original
+eight datasets. `source_csv` and `receipt_sha256` refer to the original
+campaign. For refreshed ResPR rows, `spine_raw_log` is the source of the
+new Spine timing; the G+R timing is reused.
 
-The SSSP/ResPR rows come from the frozen
+The SSSP rows and historical ResPR G+R timings come from the frozen
 [sixteen-pair checkpoint](current_fpga/resident_checkpoint_v3/README.md),
 with its receipt hashes, clocks and explicit sample reuse. The CC rows come
 from the [direct campaign](current_fpga/cc_direct_board_v1/README.md),

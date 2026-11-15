@@ -1,7 +1,8 @@
 # Fig. 7: roadNet-CA (RN)
 
-This supplement belongs to the existing Fig. 7 handoff. It does not change
-the paper, the selected eight-dataset CSV, or the November 6 archive.
+This supplement belongs to the existing Fig. 7 handoff. The tables below
+include the November 15 Spine ResPR host refresh. The paper and November 6
+archive are unchanged.
 
 ## Fig. 7 Results
 
@@ -11,25 +12,28 @@ the paper, the selected eight-dataset CSV, or the November 6 archive.
 [RN follow-up scope](followups.md)
 
 [Nine-dataset CSV](followup/fig7_nine_datasets.csv) ·
-[Preview PNG](followup/fig7_nine_datasets.png) ·
-[PDF](followup/fig7_nine_datasets.pdf). The preview combines the frozen
-24 observations and three RN measurements, including the RN SSSP loss.
+[Historical preview PNG](followup/fig7_nine_datasets.png) ·
+[Historical PDF](followup/fig7_nine_datasets.pdf). The CSV combines the
+current 24 observations and three RN measurements. The preview predates
+the ResPR host refresh; use the CSV for redraws.
 Bars extend from the 1x parity line; below it G+R is faster.
-The `source_csv` values are relative to the nine-dataset CSV.
+The `source_csv` and `spine_raw_log` paths are relative to the CSV.
 
 | Algorithm | Spine | G+R | Faster | Spine / G+R propagation rounds |
 | --- | ---: | ---: | --- | ---: |
 | [Weighted SSSP](board/sssp_measured.json) | 429.405 s | 12.890 s | G+R, 33.31x | 460 / 460 |
 | [CC](board/cc_measured.json) | 4.390 ms | 30.185 ms | Spine, 6.88x | 0 / 1 |
-| [ResPR](board/respr_measured.json) | 31.467 ms | 41.960 ms | Spine, 1.33x | 0 / 0 |
+| [ResPR](../current_fpga/respr_host_refresh_20261115/data/RN.log) | 2.742 ms | 41.960 ms | Spine, 15.30x | 0 / 0 |
 
-All three pairs passed the final CPU-reference checks. G+R's CC round
+All results passed the final CPU-reference checks. RN ResPR uses the
+November 15 Spine replay and the [original G+R measurement](board/respr_measured.json).
+G+R's CC round
 is the full convergence-check scan even though the batch changes no
 labels. Neither ResPR arm had a nonempty propagation round at the fixed
 epsilon of 1e-6. In SSSP, Spine's logged kernel span is 423.689 s of its
 429.405 s wall; the RN loss is not explained by excluding host relaunch.
-This is a single paired measurement per algorithm, not a repeatability
-estimate. The raw logs are in [board/](board/).
+Timings are single samples, not a repeatability estimate. Original RN
+raw logs are in [board/](board/).
 
 ## Workload And Measurement
 

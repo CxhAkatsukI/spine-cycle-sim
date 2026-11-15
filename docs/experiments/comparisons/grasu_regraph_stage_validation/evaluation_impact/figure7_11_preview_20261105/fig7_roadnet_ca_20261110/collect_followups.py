@@ -33,7 +33,7 @@ CPU_COLUMNS = (
 TIMING_COLUMNS = ("algorithm", "name", "arm", "record", "record_index", "field", "ms")
 FIG7_COLUMNS = (
     "dataset", "algorithm", "status", "boundary", "spine_wall_ms", "gr_wall_ms",
-    "speedup_gr_over_spine", "spine_rounds", "gr_rounds", "source_csv",
+    "speedup_gr_over_spine", "spine_rounds", "gr_rounds", "source_csv", "spine_raw_log",
 )
 RAW_NAMES = {"campaign.json", "sample.json", "inputs.json"}
 RAW_SUFFIXES = (".stdout.txt", ".stderr.txt", ".clock.json", ".clock-raw.json", ".xclbin-info.txt")
@@ -141,10 +141,22 @@ def collect_fig7(previous, board_rows):
     ]
     keys = {(row["dataset"], row["algorithm"]) for row in old + current}
     if len(old) != 24 or len(current) != 3 or len(keys) != 27:
-        raise ValueError("expected 24 frozen and 3 independently validated RN Fig. 7 rows")
+        raise ValueError("expected 24 main and 3 independently validated RN Fig. 7 rows")
+    with (Path(__file__).resolve().parent / "fig7_rn.csv").open(newline="") as stream:
+        selected_respr, = (row for row in csv.DictReader(stream)
+                           if row["algorithm"] == "residual_pagerank")
+    rn_respr, = (row for row in current if row["algorithm"] == "residual_pagerank")
+    if float(selected_respr["gr_ms"]) != float(rn_respr["gr_wall_ms"]):
+        raise ValueError("selected RN ResPR G+R timing must match the original board result")
+    rn_respr.update(
+        spine_wall_ms=selected_respr["spine_ms"],
+        speedup_gr_over_spine=float(rn_respr["gr_wall_ms"]) / float(selected_respr["spine_ms"]),
+        spine_raw_log="../" + selected_respr["spine_raw_log"],
+    )
     return [
         dict(row, algorithm="connected_components" if row["algorithm"] == "cc" else row["algorithm"],
-             source_csv="../../" + row["source_csv"])
+             source_csv="../../" + row["source_csv"],
+             spine_raw_log="../../" + row["spine_raw_log"] if row.get("spine_raw_log") else "")
         for row in old
     ] + current
 
