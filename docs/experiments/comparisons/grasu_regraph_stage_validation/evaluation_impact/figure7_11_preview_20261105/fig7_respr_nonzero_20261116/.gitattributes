@@ -1,0 +1,3 @@
+# Preserve exact command receipts and unified-diff context.
+*.command whitespace=-blank-at-eol
+*.patch whitespace=-blank-at-eol

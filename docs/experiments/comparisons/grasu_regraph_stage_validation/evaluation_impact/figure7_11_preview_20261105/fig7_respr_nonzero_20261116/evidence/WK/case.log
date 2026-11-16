@@ -1,0 +1,12 @@
+MemAvailable=63.06 GiB ARC_clean=52.02 GiB KReclaimable=15.72 GiB ARC_credit=27.22 GiB effective=90.28 GiB (required=40 GiB)
+CPU preflight WK
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=2.72848e-12 updated_max_residual=6.24166e-08 initial_logical_edges=0
+Board threshold 3e-8 for WK; acquiring board lock
+MemAvailable=63.40 GiB ARC_clean=52.02 GiB KReclaimable=15.72 GiB ARC_credit=27.22 GiB effective=90.62 GiB (required=40 GiB)
+RESIDENT_PROPAGATION epsilon=3e-08 initial_active=8 rounds=5 logical_edges_served=87 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_residual_pagerank_insert_u8.graph:final vertices=1140149 source=0 iterations=5 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=36.0545 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+MemAvailable=62.83 GiB ARC_clean=52.02 GiB KReclaimable=15.72 GiB ARC_credit=27.22 GiB effective=90.05 GiB (required=40 GiB)
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/WK/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=1140149 static_edges=2190639 logical_updates=8 physical_updates=8 final_edges=2190647 destination_partitions=18 pma_slots_total=19516560 hbm_graph_allocated_bytes=534233088 damping=0.85 epsilon=3e-08 threshold_semantics=direct_per_vertex oracle_correction_active=8 oracle_propagation_rounds=5 oracle_converged=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_TIMING update_ms=1.672571 source_prepare_ms=1.615900 adapter_ms=377.090083 lksg_ms=405.477634 mux_ms=108.148357 apply_ms=108.884218 hbm_ms=109.177718 device_e2e_ms=113.854891 setup_inclusive_ms=115.597105
+RESIDUAL_PR_PMA_NATIVE_SHARDED_RESULT status=PASS rank_mismatches=0 degree_mismatches=0 max_abs_error=0.000000 rank_error_l1=0.000000 rank_expected_l1=1.000002 rank_error_l1_limit=0.001100 rank_nonfinite=0 pipeline_executions=6 propagation_rounds=5 hardware_converged=1 oracle_propagation_rounds=5 oracle_converged=1 epsilon=0.000000 threshold_semantics=direct_per_vertex vertices=1140149 final_edges=2190647 logical_updates=8 physical_updates=8 destination_partitions=18 k4_frontends=4 shared_regraph_downstream=1 pma_slots_total=19516560 processed_edge_slots_per_execution=19516560 resident_state=old_graph_converged conversion_cost=absent

@@ -1,0 +1,6 @@
+e713f16fb313cca8a1fc7304fca72e77054dd37bcfe7c801b10e9f69dcd0a4fb  /data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_residual_pagerank_insert_u8.graph
+c9a72cd0756d85b86744a49794eaea90397fcc9fd9135a9ec01b912939ba3903  /data/chuxiao/checks/source-retention-repair-20261104/respr-host-correction-matrix-v1/wk/spine-clock-copy/control.xclbin
+2a754b0b195bf7c9d6635fce622844991852c25c2e090660a684c39a10107b63  /data/chuxiao/checks/source-retention-repair-20261104/respr-degree-prefix-dual-clock-v2/current-clock-copy/control.xclbin
+d529251fc90d7bff79198e54ed8b526d00a6d0ec961ffb9d5b6faf46e158651e  rank.f32
+7ed039bf8202db68acc6d528f303b2b3ca645bc48450360e5a257161c6be9168  /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/spine-host
+52463f7493e64373693a59f6230e64852a48e29e3dc7233773b6c9630eb31b53  /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/gr-host-build/sharded_k4_residual_pagerank_native_host

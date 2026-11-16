@@ -1,5 +1,9 @@
 # Selected Evaluation Delivery
 
+**November 16 FPGA supplement:** [Fig. 7 ResPR with nonzero propagation](fig7_respr_nonzero_20261116/README.md)
+provides all eight paired FPGA results, thresholds, round counts, and logs.
+The selected Fig. 7 CSV, archived plots and paper are unchanged.
+
 **Fig. 7 ResPR host refresh (November 15):** the
 [main Fig. 7 CSV](fig7_complete.csv) and
 [nine-dataset CSV](fig7_roadnet_ca_20261110/followup/fig7_nine_datasets.csv)

@@ -1,0 +1,51 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_residual_pagerank_insert_u8.graph vertices=1140149 initial_edges=2190639 logical_updates=8 physical_updates=8 final_edges=2190647
+Using XCL_DEVICE_INDEX=0
+SPINE_DEVICE bdf=0000:82:00.1
+VERTEX_LIFECYCLE_HW_PASS vertex=1140148 transitions=deactivate,activate
+RESIDENT_CORRECTION_CACHE scope=old_graph_only_single_batch bytes=40686736 preparation_ms=71.5332 included_in_dynamic_wall=0
+SPINE_HOST_MAINT_PHASE arguments_ms=0.023011 kernel_wall_ms=0.180075 readback_wall_ms=0.043832
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8 physical_updates=8 target_level=0 path=2 hot_edges=0 cold_edges=8
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.695301 upload_wall_ms=0.182505 arguments_ms=0.040752 kernel_wall_ms=3.1427 readback_wall_ms=2.44387 decode_ms=3.45231 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.734212 upload_wall_ms=0.191386 arguments_ms=0.038361 kernel_wall_ms=3.168 readback_wall_ms=2.69303 decode_ms=1.17076 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.721662 upload_wall_ms=0.187946 arguments_ms=0.036851 kernel_wall_ms=0.97997 readback_wall_ms=2.37318 decode_ms=1.20306 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.697652 upload_wall_ms=0.189935 arguments_ms=0.036341 kernel_wall_ms=0.98048 readback_wall_ms=2.54652 decode_ms=1.08181 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.721472 upload_wall_ms=0.186156 arguments_ms=0.094833 kernel_wall_ms=0.963269 readback_wall_ms=2.39865 decode_ms=1.07601 active_record_capacity=16777216 active_records_used=0
+RESIDENT_CORRECTION mode=old_incoming_fp32_sparse_replay dense_dangling_fallback=0 host_update_and_state_upload_in_dynamic_wall=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=0 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=8 processed_edges=8 source_status=0 source_requests=8 dirty_count=8 owner_status=0 owner_credits=8 owner_created=16 owner_retired=8 owner_reactivations=7 owner_queued=8 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=1 reactivation_fifo_max_occupancy=7
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=1 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=11 processed_edges=58 source_status=0 source_requests=8 dirty_count=8 owner_status=0 owner_credits=7 owner_created=7 owner_retired=8 owner_reactivations=7 owner_queued=7 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=7
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=2 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=7 processed_edges=7 source_status=0 source_requests=7 dirty_count=7 owner_status=0 owner_credits=7 owner_created=7 owner_retired=7 owner_reactivations=7 owner_queued=7 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=7
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=3 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=7 processed_edges=7 source_status=0 source_requests=7 dirty_count=7 owner_status=0 owner_credits=7 owner_created=7 owner_retired=7 owner_reactivations=7 owner_queued=7 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=7
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=4 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=7 processed_edges=7 source_status=0 source_requests=7 dirty_count=7 owner_status=0 owner_credits=0 owner_created=0 owner_retired=7 owner_reactivations=0 owner_queued=0 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=0
+RESIDENT_PROPAGATION epsilon=3e-08 initial_active=8 rounds=5 logical_edges_served=87 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/wk_residual_pagerank_insert_u8.graph:final vertices=1140149 source=0 iterations=5 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=36.0545 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+SPINE_HW_TIMING algorithm=thresholded_residual_pagerank logical_updates=8 physical_updates=8 maintenance_input_ms=0.052731 maintenance_kernel_ms=0.130644 maintenance_output_ms=0.0245 maintenance_device_e2e_ms=0.207875 maintenance_setup_inclusive_ms=0.333551 iterations=5 input_migration_ms=0.678271 reader_ms=4.92732 compute_ms=7.36666 kernel_span_ms=8.94656 output_migration_ms=12.0469 device_e2e_ms=21.6717 setup_inclusive_ms=26.6518 host_dynamic_preparation_ms=1.67569 dynamic_device_e2e_ms=21.8796 dynamic_kernel_ms=9.07721 dynamic_setup_inclusive_ms=28.6611 timing_scope=maintenance_plus_iterative_algorithm_excludes_static_graph_setup

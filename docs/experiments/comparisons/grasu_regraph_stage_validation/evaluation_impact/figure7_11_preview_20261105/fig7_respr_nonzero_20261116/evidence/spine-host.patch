@@ -1,0 +1,164 @@
+diff --git a/tests/test_integration/host_partitioned_algorithms_smoke.cpp b/tests/test_integration/host_partitioned_algorithms_smoke.cpp
+index c4c185d..e1e6e60 100644
+--- a/tests/test_integration/host_partitioned_algorithms_smoke.cpp
++++ b/tests/test_integration/host_partitioned_algorithms_smoke.cpp
+@@ -2220,6 +2220,39 @@ int main(int argc, char **argv) {
+         require(source < (uint32_t)workload.num_vertices,
+                 "selected source is outside the vertex domain");
+ 
++        if (const char *checkpoint = std::getenv("FIG7_RESPR_PREFLIGHT")) {
++            require(dynamic_run && SPINE_ALGORITHM_KIND == kResidualPagerank,
++                    "FIG7_RESPR_PREFLIGHT requires a dynamic ResPR input");
++            const auto rank = full_pagerank_rank(baseline_workload, 128, 0.85f);
++            std::ofstream out(checkpoint, std::ios::binary | std::ios::trunc);
++            out.write(reinterpret_cast<const char *>(rank.data()),
++                      rank.size() * sizeof(rank[0]));
++            out.close();
++            require(out.good(), "could not write shared ResPR checkpoint");
++            std::vector<uint32_t> state(state_word_count(workload.num_vertices), 0);
++            std::transform(rank.begin(), rank.end(), state.begin(), float_bits);
++            const auto old_seed = resident_pagerank_seed(state, baseline_workload);
++            const auto new_seed = resident_pagerank_seed(state, workload);
++            float max_old_residual = 0.0f, max_new_residual = 0.0f;
++            const auto n = rank.size();
++            const auto span = state_span(workload.num_vertices);
++            for (size_t v = 0; v < n; ++v) {
++                max_old_residual = std::max(max_old_residual, std::fabs(
++                    bits_float(old_seed.state[span + v])));
++                max_new_residual = std::max(max_new_residual, std::fabs(
++                    bits_float(new_seed.state[span + v])));
++            }
++            std::cout << "RESIDENT_PREFLIGHT epsilon=" << resident_pagerank_epsilon()
++                      << " old_active=" << old_seed.active.size()
++                      << " updated_active=" << new_seed.active.size()
++                      << " old_max_residual=" << max_old_residual
++                      << " updated_max_residual=" << max_new_residual
++                      << " initial_logical_edges="
++                      << active_edge_count(workload.adjacency, new_seed.active)
++                      << std::endl;
++            return 0;
++        }
++
+         require(HOST_PARTITIONED_CSR_DST_PARTITIONS <=
+                     HOST_PARTITIONED_GRAPH_PORTS,
+                 "algorithm smoke logical partitions exceed physical ports");
+diff --git a/tests/test_integration/host_resident_benchmark.hpp b/tests/test_integration/host_resident_benchmark.hpp
+index c882067..66563b2 100644
+--- a/tests/test_integration/host_resident_benchmark.hpp
++++ b/tests/test_integration/host_resident_benchmark.hpp
+@@ -17,6 +17,17 @@ struct ResidentBenchmarkSeed {
+     std::vector<uint32_t> active;
+ };
+ 
++static float resident_pagerank_epsilon() {
++    const char *value = std::getenv("FIG7_RESPR_EPSILON");
++    if (!value) return 1.0e-6f;
++    size_t used = 0;
++    const std::string literal(value);
++    const float epsilon = std::stof(literal, &used);
++    require(used == literal.size() && std::isfinite(epsilon) && epsilon > 0,
++            "invalid FIG7_RESPR_EPSILON");
++    return epsilon;
++}
++
+ static ResidentBenchmarkSeed resident_pagerank_seed(
+     const std::vector<uint32_t> &initial_state,
+     const SliceWorkload &graph
+@@ -29,12 +40,13 @@ static ResidentBenchmarkSeed resident_pagerank_seed(
+     const auto residual = pagerank_correction_residual(
+         graph.adjacency, rank, 0.85f);
+     ResidentBenchmarkSeed seed{initial_state, {}};
++    const float epsilon = resident_pagerank_epsilon();
+     for (int vertex = 0; vertex < graph.num_vertices; vertex++) {
+         const size_t index = (size_t)vertex;
+         seed.state[span + index] = float_bits(residual[index]);
+         seed.state[2ULL * span + index] =
+             (uint32_t)graph.adjacency[index].size();
+-        if (std::fabs(residual[index]) > 1.0e-6f) {
++        if (std::fabs(residual[index]) > epsilon) {
+             seed.active.push_back((uint32_t)vertex);
+         }
+     }
+@@ -59,6 +71,7 @@ static std::vector<uint32_t> resident_pagerank_reference(
+         inverse[vertex] = degree ? 1.0f / (float)degree : 0.0f;
+     }
+     unsigned iterations = 0;
++    const float epsilon = resident_pagerank_epsilon();
+     while (!seed.active.empty() && iterations < iteration_limit) {
+         std::vector<float> payload(vertices, 0.0f);
+         for (uint32_t source : seed.active) {
+@@ -76,7 +89,7 @@ static std::vector<uint32_t> resident_pagerank_reference(
+         }
+         seed.active.clear();
+         for (size_t vertex = 0; vertex < vertices; vertex++) {
+-            if (touched[vertex] && std::fabs(residual[vertex]) > 1.0e-6f) {
++            if (touched[vertex] && std::fabs(residual[vertex]) > epsilon) {
+                 seed.active.push_back((uint32_t)vertex);
+             }
+         }
+@@ -235,9 +248,11 @@ static ResidentBenchmarkResult run_resident_benchmark(
+     }
+     auto end = std::chrono::steady_clock::now();
+     ResidentBenchmarkResult result;
++    const float epsilon = resident_pagerank_epsilon();
++    const size_t initial_active = active.size();
+     while (!active.empty() && result.iterations < iteration_limit) {
+         auto output = runtime.run(
+-            SPINE_ALGORITHM_KIND, float_bits(0.85f), float_bits(1.0e-6f),
++            SPINE_ALGORITHM_KIND, float_bits(0.85f), float_bits(epsilon),
+             active, frontier, state,
+             SPINE_ALGORITHM_KIND != kResidualPagerank && result.iterations == 0);
+         end = output.readback_completed;
+@@ -265,11 +280,21 @@ static ResidentBenchmarkResult run_resident_benchmark(
+                   << " host_update_and_state_upload_in_dynamic_wall=1" << std::endl;
+     }
+     // Reference edge counting and ledger validation are outside the wall window.
++    uint64_t logical_edges_served = 0;
+     for (size_t round = 0; round < round_ledgers.size(); round++) {
++        const auto edges = active_edge_count(graph.adjacency, round_sources[round]);
+         validate_common("resident_benchmark", (int)round, round_ledgers[round],
+-                        active_edge_count(graph.adjacency, round_sources[round]));
++                        edges);
++        logical_edges_served += edges;
+     }
+     validate_resident_benchmark_state(state, reference.expected_state, graph.num_vertices);
++    if (SPINE_ALGORITHM_KIND == kResidualPagerank) {
++        std::cout << "RESIDENT_PROPAGATION epsilon=" << epsilon
++                  << " initial_active=" << initial_active
++                  << " rounds=" << result.iterations
++                  << " logical_edges_served=" << logical_edges_served
++                  << " status=PASS" << std::endl;
++    }
+     return result;
+ }
+ 
+diff --git a/tests/test_integration/host_resident_pagerank_correction.hpp b/tests/test_integration/host_resident_pagerank_correction.hpp
+index 2ebc1ff..68fb62a 100644
+--- a/tests/test_integration/host_resident_pagerank_correction.hpp
++++ b/tests/test_integration/host_resident_pagerank_correction.hpp
+@@ -37,7 +37,7 @@ public:
+         for (size_t vertex = 0; vertex < vertices; vertex++) {
+             offsets_[vertex + 1] += offsets_[vertex];
+             residual_[vertex] -= rank_[vertex];
+-            if (std::fabs(residual_[vertex]) > 1.0e-6f) {
++            if (std::fabs(residual_[vertex]) > epsilon_) {
+                 old_active_.push_back((uint32_t)vertex);
+             }
+         }
+@@ -139,7 +139,7 @@ public:
+             }
+             const float residual = sum - rank_[target];
+             state[span + target] = float_bits(residual);
+-            if (std::fabs(residual) > 1.0e-6f) active.push_back(target);
++            if (std::fabs(residual) > epsilon_) active.push_back(target);
+         }
+         for (uint32_t source : sources) {
+             state[2ULL * span + source] = (uint32_t)graph.adjacency[source].size();
+@@ -159,6 +159,7 @@ private:
+     std::vector<float> rank_, residual_, contribution_;
+     std::vector<size_t> degree_, offsets_;
+     std::vector<uint32_t> incoming_, old_active_;
++    const float epsilon_ = resident_pagerank_epsilon();
+     float base_ = 0.0f;
+     bool used_dense_fallback_ = false;
+ };

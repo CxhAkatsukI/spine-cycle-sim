@@ -1,0 +1,4 @@
+2026-11-16T16:11:53+08:00 trifoliate systemd[252250]: Started run-rb721024c9eec469ab461cab63a6c823d.service - [systemd-run] /usr/bin/bash /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/run-respr-matrix.sh --case SO 16 /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/SO 32.
+2026-11-16T16:16:41+08:00 trifoliate systemd[252250]: run-rb721024c9eec469ab461cab63a6c823d.service: A process of this unit has been killed by the OOM killer.
+2026-11-16T16:16:43+08:00 trifoliate systemd[252250]: run-rb721024c9eec469ab461cab63a6c823d.service: Failed with result 'oom-kill'.
+2026-11-16T16:16:43+08:00 trifoliate systemd[252250]: run-rb721024c9eec469ab461cab63a6c823d.service: Consumed 4min 26.451s CPU time, 16G memory peak.

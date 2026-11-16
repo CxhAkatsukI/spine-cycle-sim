@@ -1,0 +1,12 @@
+SHARDED_METADATA_POLICY replicas=4 updated_shards=7 used_banks=23 allocated_bytes=7297552384 placement=capacity_lane_aware_23 selection=capacity_only
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/SO/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=6024271 static_edges=28299669 logical_updates=8 physical_updates=8 final_edges=28299677 destination_partitions=92 pma_slots_total=208069984 hbm_graph_allocated_bytes=7297552384 damping=0.85 epsilon=3e-09 threshold_semantics=direct_per_vertex oracle_correction_active=6 oracle_propagation_rounds=1 oracle_converged=1
+GRASU_SHARDED_UPDATE_LAYOUT shard=1 destination_base=65536 destination_vertices=65536 updates=2 unique_sources=2 pma_slots=5752560 source_segments=2 binary_probes=0 cache_updates=2 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=12 destination_base=786432 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=3619904 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=15 destination_base=983040 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=3540832 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=16 destination_base=1048576 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=3362848 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=23 destination_base=1507328 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=2617616 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=41 destination_base=2686976 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1868192 source_segments=2 binary_probes=1 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=48 destination_base=3145728 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1727312 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_REGRAPH_DEVICE bdf=0000:82:00.1
+Using XCL_DEVICE_INDEX=0

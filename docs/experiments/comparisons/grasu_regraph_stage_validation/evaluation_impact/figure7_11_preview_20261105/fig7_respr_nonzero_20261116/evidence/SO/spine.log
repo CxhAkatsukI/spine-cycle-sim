@@ -1,0 +1,19 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_residual_pagerank_insert_u8.graph vertices=6024271 initial_edges=28299669 logical_updates=8 physical_updates=8 final_edges=28299677
+Using XCL_DEVICE_INDEX=0
+SPINE_DEVICE bdf=0000:82:00.1
+VERTEX_LIFECYCLE_HW_PASS vertex=6024270 transitions=deactivate,activate
+RESIDENT_CORRECTION_CACHE scope=old_graph_only_single_batch bytes=281878272 preparation_ms=1877.05 included_in_dynamic_wall=0
+SPINE_HOST_MAINT_PHASE arguments_ms=0.023901 kernel_wall_ms=0.226237 readback_wall_ms=0.048781
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8 physical_updates=8 target_level=0 path=2 hot_edges=0 cold_edges=8
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=5.37045 upload_wall_ms=0.385982 arguments_ms=0.058191 kernel_wall_ms=75.944 readback_wall_ms=12.6773 decode_ms=100.645 active_record_capacity=16777216 active_records_used=0
+RESIDENT_CORRECTION mode=old_incoming_fp32_sparse_replay dense_dangling_fallback=0 host_update_and_state_upload_in_dynamic_wall=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=0 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=214 processed_edges=10760 source_status=0 source_requests=6 dirty_count=6 owner_status=0 owner_credits=0 owner_created=6 owner_retired=6 owner_reactivations=0 owner_queued=0 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=0
+RESIDENT_PROPAGATION epsilon=3e-09 initial_active=6 rounds=1 logical_edges_served=10760 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_residual_pagerank_insert_u8.graph:final vertices=6024271 source=0 iterations=1 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=110.426 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+SPINE_HW_TIMING algorithm=thresholded_residual_pagerank logical_updates=8 physical_updates=8 maintenance_input_ms=0.060592 maintenance_kernel_ms=0.170065 maintenance_output_ms=0.029271 maintenance_device_e2e_ms=0.259928 maintenance_setup_inclusive_ms=0.385252 iterations=1 input_migration_ms=0.285038 reader_ms=74.7436 compute_ms=66.3661 kernel_span_ms=75.7967 output_migration_ms=12.5184 device_e2e_ms=88.6002 setup_inclusive_ms=94.5168 host_dynamic_preparation_ms=15.4679 dynamic_device_e2e_ms=88.8601 dynamic_kernel_ms=75.9668 dynamic_setup_inclusive_ms=110.37 timing_scope=maintenance_plus_iterative_algorithm_excludes_static_graph_setup

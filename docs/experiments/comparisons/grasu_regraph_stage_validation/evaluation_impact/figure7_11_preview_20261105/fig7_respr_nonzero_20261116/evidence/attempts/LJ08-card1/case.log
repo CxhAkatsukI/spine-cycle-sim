@@ -1,0 +1,5 @@
+MemAvailable=47.01 GiB ARC_clean=55.83 GiB KReclaimable=15.23 GiB ARC_credit=30.45 GiB effective=77.46 GiB (required=76 GiB)
+Reusing CPU preflight checkpoint from /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-attempts/LJ08
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=6.40284e-10 updated_max_residual=2.92054e-08 initial_logical_edges=0
+Board threshold 1e-8 for LJ08; acquiring lock on 0000:c1:00.1
+MemAvailable=47.04 GiB ARC_clean=55.83 GiB KReclaimable=15.24 GiB ARC_credit=30.44 GiB effective=77.49 GiB (required=76 GiB)

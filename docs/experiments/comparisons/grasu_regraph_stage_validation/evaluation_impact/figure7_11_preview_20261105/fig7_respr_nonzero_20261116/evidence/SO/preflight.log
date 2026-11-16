@@ -1,0 +1,2 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/so_residual_pagerank_insert_u8.graph vertices=6024271 initial_edges=28299669 logical_updates=8 physical_updates=8 final_edges=28299677
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=1.36424e-12 updated_max_residual=6.86032e-09 initial_logical_edges=0

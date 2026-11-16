@@ -1,0 +1,26 @@
+SHARDED_METADATA_POLICY replicas=4 updated_shards=8 used_banks=23 allocated_bytes=7179563008 placement=capacity_lane_aware_23 selection=capacity_only
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/LJ/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=4847571 static_edges=85703436 logical_updates=8 physical_updates=8 final_edges=85703444 destination_partitions=74 pma_slots_total=521807072 hbm_graph_allocated_bytes=7179563008 damping=0.85 epsilon=1e-08 threshold_semantics=direct_per_vertex oracle_correction_active=4 oracle_propagation_rounds=1 oracle_converged=1
+GRASU_SHARDED_UPDATE_LAYOUT shard=5 destination_base=327680 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=16484832 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=8 destination_base=524288 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=15402240 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=12 destination_base=786432 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=12919728 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=15 destination_base=983040 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=10455456 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=23 destination_base=1507328 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=8662256 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=26 destination_base=1703936 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=7909216 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=44 destination_base=2883584 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=4073504 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=72 destination_base=4718592 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1513232 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_REGRAPH_DEVICE bdf=0000:82:00.1
+Using XCL_DEVICE_INDEX=0
+XRT build version: 2.18.179
+Build hash: 3ade2e671e5ab463400813fc2846c57edf82bb10
+Build date: 2024-11-05 13:57:47
+Git branch: 2024.2
+PID: 2428065
+UID: 2009
+[Mon Nov 16 08:33:05 2026 GMT]
+HOST: trifoliate
+EXE: /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/gr-host-build/sharded_k4_residual_pagerank_native_host
+[XRT] ERROR: Xclbin on card is in use, can't change.
+[XRT] ERROR: See dmesg log for details. err = -16
+[XRT] ERROR: failed to load xclbin: Device or resource busy
+ERROR: program device failed with OpenCL error -6

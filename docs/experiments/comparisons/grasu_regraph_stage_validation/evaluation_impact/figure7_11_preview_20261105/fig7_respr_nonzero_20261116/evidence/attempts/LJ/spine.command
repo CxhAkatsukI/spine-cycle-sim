@@ -1,0 +1,1 @@
+FIG7_RESPR_EPSILON=1e-8 /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/spine-host /data/chuxiao/checks/source-retention-repair-20261104/respr-host-correction-arc-lj-retry-v3/lj/spine-clock-copy/control.xclbin --dynamic-graph /data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_residual_pagerank_insert_u8.graph --source 0 --resident-benchmark 

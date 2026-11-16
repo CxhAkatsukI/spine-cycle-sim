@@ -1,0 +1,13 @@
+MemAvailable=55.91 GiB ARC_clean=56.50 GiB KReclaimable=15.22 GiB ARC_credit=30.96 GiB effective=86.88 GiB (required=64 GiB)
+Reusing CPU preflight checkpoint from /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-attempts/PK
+Reusing passed Delta.hls measurement on 0000:82:00.1
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=4.45652e-11 updated_max_residual=3.99236e-08 initial_logical_edges=0
+Board threshold 3e-8 for PK; acquiring lock on 0000:82:00.1
+MemAvailable=55.91 GiB ARC_clean=56.50 GiB KReclaimable=15.22 GiB ARC_credit=30.96 GiB effective=86.87 GiB (required=64 GiB)
+RESIDENT_PROPAGATION epsilon=3e-08 initial_active=1 rounds=1 logical_edges_served=48 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/pk_residual_pagerank_insert_u8.graph:final vertices=1632803 source=0 iterations=1 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=19.0151 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+MemAvailable=55.92 GiB ARC_clean=56.50 GiB KReclaimable=15.22 GiB ARC_credit=30.96 GiB effective=86.89 GiB (required=64 GiB)
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/PK/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=1632803 static_edges=44603928 logical_updates=8 physical_updates=8 final_edges=44603936 destination_partitions=25 pma_slots_total=232061040 hbm_graph_allocated_bytes=2124267520 damping=0.85 epsilon=3e-08 threshold_semantics=direct_per_vertex oracle_correction_active=1 oracle_propagation_rounds=1 oracle_converged=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_TIMING update_ms=16.862440 source_prepare_ms=2.148647 adapter_ms=405.380745 lksg_ms=407.760167 mux_ms=105.797770 apply_ms=106.040508 hbm_ms=106.111780 device_e2e_ms=125.738387 setup_inclusive_ms=127.977587
+RESIDUAL_PR_PMA_NATIVE_SHARDED_RESULT status=PASS rank_mismatches=0 degree_mismatches=0 max_abs_error=0.000000 rank_error_l1=0.000000 rank_expected_l1=1.000000 rank_error_l1_limit=0.001100 rank_nonfinite=0 pipeline_executions=2 propagation_rounds=1 hardware_converged=1 oracle_propagation_rounds=1 oracle_converged=1 epsilon=0.000000 threshold_semantics=direct_per_vertex vertices=1632803 final_edges=44603936 logical_updates=8 physical_updates=8 destination_partitions=25 k4_frontends=4 shared_regraph_downstream=1 pma_slots_total=232061040 processed_edge_slots_per_execution=232061040 resident_state=old_graph_converged conversion_cost=absent

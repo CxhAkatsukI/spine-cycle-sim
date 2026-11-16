@@ -1,0 +1,6 @@
+MemAvailable=61.67 GiB ARC_clean=52.18 GiB KReclaimable=15.73 GiB ARC_credit=27.34 GiB effective=89.02 GiB (required=56 GiB)
+CPU preflight PK
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=4.45652e-11 updated_max_residual=3.99236e-08 initial_logical_edges=0
+Board threshold 3e-8 for PK; acquiring board lock
+MemAvailable=61.79 GiB ARC_clean=51.82 GiB KReclaimable=15.73 GiB ARC_credit=27.07 GiB effective=88.87 GiB (required=56 GiB)
+/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/run-respr-matrix.sh: line 83: syntax error near unexpected token `;'

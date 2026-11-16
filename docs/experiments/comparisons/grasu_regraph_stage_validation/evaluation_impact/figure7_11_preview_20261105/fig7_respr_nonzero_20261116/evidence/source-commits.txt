@@ -1,0 +1,3 @@
+Delta.hls HLS and host: 0226332e3c71c4d26859a06fcdc4e6ead8b48b7b
+G+R HLS and host: a518092ad2f593cc59db01aec167275fbf92b863
+The FPGA images are unchanged; the accompanying patches apply to the hosts only.

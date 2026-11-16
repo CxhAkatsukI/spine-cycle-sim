@@ -1,0 +1,3 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj08_residual_pagerank_insert_u8.graph vertices=5363260 initial_edges=99028616 logical_updates=8 physical_updates=8 final_edges=99028624
+Using XCL_DEVICE_INDEX=1
+SPINE_DEVICE bdf=0000:c1:00.1

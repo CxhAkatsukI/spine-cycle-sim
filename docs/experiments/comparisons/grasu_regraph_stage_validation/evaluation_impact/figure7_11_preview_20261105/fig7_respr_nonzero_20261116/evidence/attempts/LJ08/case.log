@@ -1,0 +1,5 @@
+MemAvailable=52.96 GiB ARC_clean=52.78 GiB KReclaimable=15.23 GiB ARC_credit=28.16 GiB effective=81.13 GiB (required=76 GiB)
+CPU preflight LJ08
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=6.40284e-10 updated_max_residual=2.92054e-08 initial_logical_edges=0
+Board threshold 1e-8 for LJ08; acquiring board lock
+MemAvailable=48.46 GiB ARC_clean=56.52 GiB KReclaimable=15.22 GiB ARC_credit=30.98 GiB effective=79.44 GiB (required=76 GiB)

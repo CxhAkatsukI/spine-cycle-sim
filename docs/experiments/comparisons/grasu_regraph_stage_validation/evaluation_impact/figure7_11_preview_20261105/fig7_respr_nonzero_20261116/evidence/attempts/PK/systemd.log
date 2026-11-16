@@ -1,0 +1,4 @@
+2026-11-16T16:16:43+08:00 trifoliate systemd[252250]: Started run-r60329d18fe434323bdc45251700505a4.service - [systemd-run] /usr/bin/bash /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/run-respr-matrix.sh --case PK 24 /data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/PK 32.
+2026-11-16T16:18:56+08:00 trifoliate systemd[252250]: run-r60329d18fe434323bdc45251700505a4.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+2026-11-16T16:18:56+08:00 trifoliate systemd[252250]: run-r60329d18fe434323bdc45251700505a4.service: Failed with result 'exit-code'.
+2026-11-16T16:18:56+08:00 trifoliate systemd[252250]: run-r60329d18fe434323bdc45251700505a4.service: Consumed 2min 3.112s CPU time, 12.9G memory peak.

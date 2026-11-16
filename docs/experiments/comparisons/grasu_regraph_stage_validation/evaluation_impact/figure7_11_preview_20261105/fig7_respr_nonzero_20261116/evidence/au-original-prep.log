@@ -1,0 +1,8 @@
+SHARDED_METADATA_POLICY replicas=4 updated_shards=4 used_banks=4 allocated_bytes=228016128 placement=fixed_four selection=capacity_only
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=515281 static_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856 destination_partitions=8 pma_slots_total=8913984 hbm_graph_allocated_bytes=228016128 damping=0.85 epsilon=1e-07 threshold_semantics=direct_per_vertex oracle_correction_active=8 oracle_propagation_rounds=4 oracle_converged=1
+GRASU_SHARDED_UPDATE_LAYOUT shard=1 destination_base=65536 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1166592 source_segments=2 binary_probes=1 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=2 destination_base=131072 destination_vertices=65536 updates=5 unique_sources=2 pma_slots=1110272 source_segments=9 binary_probes=4 cache_updates=5 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=3 destination_base=196608 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1074864 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=5 destination_base=327680 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1052320 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_PREP status=PASS vertices=515281 destination_partitions=8 pma_slots_total=8913984 pma_slots_max_shard=1498608 rank_sum=1.0051122 pma_destination_abi=local_dst19 k4_frontends=4 shared_regraph_downstream=1 conversion_cost=absent

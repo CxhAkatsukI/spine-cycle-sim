@@ -1,0 +1,10 @@
+MemAvailable=62.11 GiB ARC_clean=52.07 GiB KReclaimable=15.67 GiB ARC_credit=27.30 GiB effective=89.42 GiB (required=72 GiB)
+CPU preflight LJ
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=0 old_max_residual=2.21917e-10 updated_max_residual=1.72448e-08 initial_logical_edges=0
+Board threshold 1e-8 for LJ; acquiring board lock
+MemAvailable=61.87 GiB ARC_clean=52.43 GiB KReclaimable=15.67 GiB ARC_credit=27.57 GiB effective=89.44 GiB (required=72 GiB)
+RESIDENT_PROPAGATION epsilon=1e-08 initial_active=4 rounds=1 logical_edges_served=112 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/lj_residual_pagerank_insert_u8.graph:final vertices=4847571 source=0 iterations=1 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=42.7799 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+MemAvailable=61.34 GiB ARC_clean=52.53 GiB KReclaimable=15.61 GiB ARC_credit=27.69 GiB effective=89.03 GiB (required=72 GiB)
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/LJ/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=4847571 static_edges=85703436 logical_updates=8 physical_updates=8 final_edges=85703444 destination_partitions=74 pma_slots_total=521807072 hbm_graph_allocated_bytes=7179563008 damping=0.85 epsilon=1e-08 threshold_semantics=direct_per_vertex oracle_correction_active=4 oracle_propagation_rounds=1 oracle_converged=1

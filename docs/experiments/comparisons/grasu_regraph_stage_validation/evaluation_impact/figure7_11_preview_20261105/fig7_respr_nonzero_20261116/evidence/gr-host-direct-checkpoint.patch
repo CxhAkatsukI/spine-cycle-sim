@@ -1,0 +1,70 @@
+diff --git a/tools/sharded_k4_pagerank_native_host.cpp b/tools/sharded_k4_pagerank_native_host.cpp
+index 1fc7a8c..138c5c8 100644
+--- a/tools/sharded_k4_pagerank_native_host.cpp
++++ b/tools/sharded_k4_pagerank_native_host.cpp
+@@ -10,7 +10,7 @@
+ namespace {
+ 
+ constexpr float kPageRankDamping = 0.85F;
+-constexpr float kPageRankEpsilon = 1.0e-6F;
++float kPageRankEpsilon = 1.0e-6F;
+ constexpr unsigned kFullPageRankRounds = 3;
+ constexpr unsigned kResidualPageRankMaxRounds = 256;
+ 
+@@ -123,6 +123,15 @@ std::vector<DeviceShard> allocate_page_rank_shards(
+ int main(int argc, char **argv)
+ {
+     try {
++        if (const char *value = std::getenv("FIG7_RESPR_EPSILON")) {
++            std::size_t used = 0;
++            const std::string literal(value);
++            kPageRankEpsilon = std::stof(literal, &used);
++            if (used != literal.size() || !std::isfinite(kPageRankEpsilon) ||
++                    kPageRankEpsilon <= 0.0F) {
++                fail("invalid FIG7_RESPR_EPSILON");
++            }
++        }
+         const bool prepare_only =
+             argc >= 2 && std::string(argv[1]) == "--prepare-only";
+         const bool update_only =
+@@ -159,8 +168,30 @@ int main(int argc, char **argv)
+         if (!update_only) {
+             const FinalEdgeMap static_edges =
+                 build_static_external_edges(dataset);
+-            warm_oracle = run_full_pagerank_oracle(
+-                dataset.node_size, static_edges, 128, kPageRankDamping);
++            if (const char *checkpoint = std::getenv("FIG7_RESPR_CHECKPOINT")) {
++                std::ifstream input(checkpoint, std::ios::binary);
++                warm_oracle.rank.resize(dataset.node_size);
++                const auto bytes = warm_oracle.rank.size() * sizeof(float);
++                if (!input.read(reinterpret_cast<char *>(warm_oracle.rank.data()),
++                                bytes) ||
++                        input.peek() != std::ifstream::traits_type::eof() ||
++                        !std::all_of(warm_oracle.rank.begin(), warm_oracle.rank.end(),
++                            [](float rank) { return std::isfinite(rank) && rank >= 0; })) {
++                    fail("invalid shared ResPR checkpoint");
++                }
++                const auto old_seed = run_residual_pagerank_oracle(
++                    dataset.node_size, static_edges, warm_oracle.rank, 0,
++                    kPageRankDamping, kPageRankEpsilon);
++                std::cout << "SHARED_RESPR_CHECKPOINT path=" << checkpoint
++                          << " old_active=" << old_seed.correction_active_vertices
++                          << std::endl;
++                if (old_seed.correction_active_vertices != 0) {
++                    fail("shared checkpoint is not converged at the requested threshold");
++                }
++            } else {
++                warm_oracle = run_full_pagerank_oracle(
++                    dataset.node_size, static_edges, 128, kPageRankDamping);
++            }
+         }
+ #ifdef GRASU_REGRAPH_RESIDUAL_PAGERANK
+         ResidualPageRankOracleResult oracle;
+@@ -217,6 +248,7 @@ int main(int argc, char **argv)
+ #ifdef GRASU_REGRAPH_RESIDUAL_PAGERANK
+                   << " epsilon=" << kPageRankEpsilon
+                   << " threshold_semantics=direct_per_vertex"
++                  << " oracle_correction_active=" << oracle.correction_active_vertices
+                   << " oracle_propagation_rounds="
+                   << (update_only ? 0 : oracle.propagation_rounds)
+                   << " oracle_converged=" << (oracle.converged ? 1 : 0)

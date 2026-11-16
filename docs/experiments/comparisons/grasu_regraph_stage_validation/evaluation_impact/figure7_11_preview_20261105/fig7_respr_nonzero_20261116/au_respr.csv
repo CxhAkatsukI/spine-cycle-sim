@@ -1,0 +1,2 @@
+dataset,algorithm,vertices,initial_edges,insertions,epsilon,old_active,delta_seed_active,gr_seed_active,delta_propagation_rounds,gr_propagation_rounds,delta_logical_edges_served,delta_resident_wall_ms,gr_resident_wall_ms,delta_speedup,delta_correctness,gr_correctness,measured_pairs
+AU,ResPR,515281,826848,8,1e-7,0,8,8,4,4,1569,21.3865,31.495064,1.47266,PASS,PASS,1
