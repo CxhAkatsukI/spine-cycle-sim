@@ -4,8 +4,12 @@
 for `1e-7` and `3e-9`, each applied uniformly to the original eight graphs.
 This supplement leaves the selected Fig. 7 CSV and plots unchanged.
 
-**November 16 FPGA supplement:** [Fig. 7 ResPR with nonzero propagation](fig7_respr_nonzero_20261116/README.md)
+**November 16 FPGA supplements:** [Fig. 7 ResPR with nonzero propagation](fig7_respr_nonzero_20261116/README.md)
 provides all eight paired FPGA results, thresholds, round counts, and logs.
+[Deletion-share Fig. 10(b)](fig10b_deletion_20261116/README.md)
+provides AU CC and LJ08 SSSP FPGA data and the matched software references.
+For the original LJ08 batches, see the
+[incremental SSSP comparison](fig10b_deletion_20261116/lj08_sssp/comparison.csv).
 The selected Fig. 7 CSV, archived plots and paper are unchanged.
 
 **Fig. 7 ResPR host refresh (November 15):** the

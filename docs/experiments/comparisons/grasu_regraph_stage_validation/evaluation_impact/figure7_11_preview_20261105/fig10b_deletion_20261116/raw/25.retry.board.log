@@ -1,0 +1,51 @@
+MemAvailable=62.63 GiB ARC_clean=48.04 GiB KReclaimable=15.25 GiB ARC_credit=24.59 GiB effective=87.22 GiB (required=56 GiB)
+CC_BALANCED_PRELOAD hot_vertices=0 hot_edges=0 update_margin=1024
+Using XCL_DEVICE_INDEX=0
+CC_BO bank=0 aligned_bytes=524881920
+CC_BO bank=1 aligned_bytes=524881920
+CC_BO bank=2 aligned_bytes=524881920
+CC_BO bank=3 aligned_bytes=524881920
+CC_BO bank=4 aligned_bytes=524881920
+CC_BO bank=5 aligned_bytes=524881920
+CC_BO bank=6 aligned_bytes=524881920
+CC_BO bank=7 aligned_bytes=524881920
+CC_BO bank=8 aligned_bytes=524881920
+CC_BO bank=9 aligned_bytes=524881920
+CC_BO bank=10 aligned_bytes=524881920
+CC_BO bank=11 aligned_bytes=524881920
+CC_BO bank=12 aligned_bytes=524881920
+CC_BO bank=13 aligned_bytes=524881920
+CC_BO bank=14 aligned_bytes=524881920
+CC_BO bank=15 aligned_bytes=524881920
+CC_BO bank=16 aligned_bytes=140509184
+CC_BO bank=17 aligned_bytes=2064384
+CC_BO bank=18 aligned_bytes=10539008
+CC_BO bank=19 aligned_bytes=4124672
+CC_BO bank=20 aligned_bytes=159019008
+CC_BO bank=21 aligned_bytes=4096
+CC_BO bank=22 aligned_bytes=10489856
+CC_SETUP vertices=515281 setup_ms=4181.23 source_config_sha256=aa26b2530e38ec1ff43084ceb12ddda8a3e556fef0db848bb593d27c1f61e9b0
+CC_BOOTSTRAP_PASS sample=0 order=0 hot=0 full=0 batch=0 update_until_converged_ms=38529.668473 ack_ms=0.127824 identity_init_ms=503.559387 publication_ms=0.118584 raw_reload_owner_ms=97.362113 relaxation_ms=37928.494965 kind=0 affected=0 touched=0 changed=0 rounds=10 vertex_visits=924574 reset=515281 discovery_edges=0 relax_edges=2306435 physical_edges=2306435 admission_rows=0 discovery_rows=0 row_queries=924574 admission_physical=0 discovery_physical=0 relax_physical=2306435 logical_deletions=0 logical_insertions=0 physical_records=0 cleanup_vertices=0 workspace_words=329317 row_peak=3350 frontier_peak=515281 graph_generation=1 label_generation=1 append_mask=0 consumed_mask=0 valid=1
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=0 input=515281 output=127087 edges=679246
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=1 input=127087 output=128229 edges=659652
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=2 input=128229 output=113131 edges=629173
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=3 input=113131 output=35103 edges=284805
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=4 input=35103 output=4966 edges=46877
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=5 input=4966 output=663 edges=5787
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=6 input=663 output=94 edges=761
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=7 input=94 output=16 edges=110
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=8 input=16 output=4 edges=20
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=9 input=4 output=0 edges=4
+CC_RESIDENT_WALL sample=0 order=0 hot=0 full=0 batch=0 vertices=515281 physical_records=1024 host_pack_to_final_readback_ms=44709.400211 batch_resident_to_final_readback_ms=44709.242706
+CC_UPDATE_PASS sample=0 order=0 hot=0 full=0 batch=0 update_until_converged_ms=44708.848544 ack_ms=2.632343 admission_discovery_ms=2633.692511 maintenance_ms=1.815557 publication_ms=1742.527691 relaxation_ms=38588.699718 reset_cleanup_ms=1739.320009 upload_ms=0.151405 kind=4 affected=515281 touched=379217 changed=411 rounds=10 vertex_visits=925211 reset=515281 discovery_edges=0 relax_edges=2307633 physical_edges=2362646 admission_rows=1010 discovery_rows=0 row_queries=926221 admission_physical=53431 discovery_physical=0 relax_physical=2309215 logical_deletions=128 logical_insertions=384 physical_records=1024 cleanup_vertices=1030562 workspace_words=329317 row_peak=3350 frontier_peak=515281 graph_generation=2 label_generation=2 append_mask=0 consumed_mask=0 valid=1
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=0 input=515281 output=127386 edges=679758
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=1 input=127386 output=128311 edges=659885
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=2 input=128311 output=113237 edges=629208
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=3 input=113237 output=35217 edges=285023
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=4 input=35217 output=4998 edges=47037
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=5 input=4998 output=666 edges=5822
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=6 input=666 output=95 edges=765
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=7 input=95 output=16 edges=111
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=8 input=16 output=4 edges=20
+CC_ROUND sample=0 order=0 hot=0 full=0 batch=0 round=9 input=4 output=0 edges=4
+CC_REPAIR_PASS vertices=515281 updates=1 all_raw_labels_checked=1 all_raw_graphs_checked=1 all_round_work_checked=1

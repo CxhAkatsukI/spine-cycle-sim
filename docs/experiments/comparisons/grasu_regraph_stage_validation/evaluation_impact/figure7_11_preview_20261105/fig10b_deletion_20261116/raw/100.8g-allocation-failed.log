@@ -1,0 +1,19 @@
+MemAvailable=36.09 GiB ARC_clean=47.11 GiB KReclaimable=14.88 GiB ARC_credit=24.17 GiB effective=60.26 GiB (required=40 GiB)
+CC_BALANCED_PRELOAD hot_vertices=0 hot_edges=0 update_margin=1024
+Using XCL_DEVICE_INDEX=0
+CC_BO bank=0 aligned_bytes=524881920
+CC_BO bank=1 aligned_bytes=524881920
+CC_BO bank=2 aligned_bytes=524881920
+CC_BO bank=3 aligned_bytes=524881920
+CC_BO bank=4 aligned_bytes=524881920
+CC_BO bank=5 aligned_bytes=524881920
+CC_BO bank=6 aligned_bytes=524881920
+CC_BO bank=7 aligned_bytes=524881920
+CC_BO bank=8 aligned_bytes=524881920
+CC_BO bank=9 aligned_bytes=524881920
+CC_BO bank=10 aligned_bytes=524881920
+CC_BO bank=11 aligned_bytes=524881920
+CC_BO bank=12 aligned_bytes=524881920
+CC_BO bank=13 aligned_bytes=524881920
+CC_BO bank=14 aligned_bytes=524881920
+CC_BO bank=15 aligned_bytes=524881920

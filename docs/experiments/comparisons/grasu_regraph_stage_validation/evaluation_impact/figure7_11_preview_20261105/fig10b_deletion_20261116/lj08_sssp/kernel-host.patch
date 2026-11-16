@@ -1,0 +1,84 @@
+diff --git a/src/spine_partitioned.hpp b/src/spine_partitioned.hpp
+index 752aa49..77d236d 100644
+--- a/src/spine_partitioned.hpp
++++ b/src/spine_partitioned.hpp
+@@ -3875,6 +3875,9 @@ static ap_uint<64> partitioned_level_total_capacity(int level) {
+ 
+ static ap_uint<64> partitioned_level_partition_capacity(int level) {
+ #pragma HLS INLINE
++#if SPINE_ENABLE_SSSP_REPAIR && SPINE_ENABLE_ORDERED_MIXED
++    if (level == 10) return SPINE_REPAIR_LJ08_L10_CAPACITY;
++#endif
+     if (level == 0) return (ap_uint<64>)PARTITIONED_RATIO2_MAX_SORT_N;
+     ap_uint<64> total = partitioned_level_total_capacity(level);
+     return ((total + (ap_uint<64>)PARTITIONED_CSR_DST_PARTITIONS - 1) /
+diff --git a/src/spine_sssp_repair_layout.hpp b/src/spine_sssp_repair_layout.hpp
+index e4b9e1c..158bbd0 100644
+--- a/src/spine_sssp_repair_layout.hpp
++++ b/src/spine_sssp_repair_layout.hpp
+@@ -27,7 +27,8 @@ static const unsigned SPINE_REPAIR_MAGIC =
+ static const unsigned SPINE_REPAIR_SLOT_DIVISOR =
+     SPINE_ENABLE_SSSP_REPAIR ? 4 : 1;
+ static const uint64_t SPINE_REPAIR_BANK_BYTES = 512ULL * 1024 * 1024;
+-static const unsigned SPINE_REPAIR_ROW_CAPACITY = 4096;
++static const unsigned SPINE_REPAIR_ROW_CAPACITY = 65536;
++static const unsigned SPINE_REPAIR_LJ08_L10_CAPACITY = 5U * 1024U * 1024U;
+ static const unsigned SPINE_REPAIR_BATCH_CAPACITY = 131072;
+ static const unsigned SPINE_REPAIR_HEADER_WORDS =
+     32 + (SPINE_ENABLE_STATIC_ENGINE ? SPINE_ENGINE_EXTENSION_WORDS : 0);
+diff --git a/tests/test_integration/host_split.hpp b/tests/test_integration/host_split.hpp
+index 36eb4ae..5652256 100644
+--- a/tests/test_integration/host_split.hpp
++++ b/tests/test_integration/host_split.hpp
+@@ -876,6 +876,9 @@ static inline size_t partitioned_ratio2_total_edge_capacity() {
+ }
+ 
+ static inline size_t partitioned_ratio2_level_partition_capacity(int level) {
++#if SPINE_ENABLE_SSSP_REPAIR && SPINE_ENABLE_ORDERED_MIXED
++    if (level == 10) return SPINE_REPAIR_LJ08_L10_CAPACITY;
++#endif
+     if (level == 0) return (size_t)HOST_PARTITIONED_RATIO2_MAX_SORT_N;
+     size_t total = partitioned_ratio2_level_edge_capacity(level);
+     return ((total + (size_t)HOST_PARTITIONED_CSR_DST_PARTITIONS - 1ULL) /
+diff --git a/tests/test_integration/host_sssp_repair.cpp b/tests/test_integration/host_sssp_repair.cpp
+index 40ebcc3..eda4d94 100644
+--- a/tests/test_integration/host_sssp_repair.cpp
++++ b/tests/test_integration/host_sssp_repair.cpp
+@@ -208,6 +208,37 @@ public:
+         compute_.setArg(2, owner_); compute_.setArg(3, result_); compute_.setArg(4, n_);
+         run(SPINE_REPAIR_INIT, false, source); run(SPINE_REPAIR_INIT_REVERSE, true);
+     }
++    void preload_graph_bank(int orientation, unsigned bank, const std::vector<uint64_t>& words) {
++        require(orientation >= 0 && orientation < 2 && bank < 16 &&
++                words.size() == partitioned_fixed_all_levels_words_host() * 2,
++                "invalid checkpoint graph bank extent");
++        transfer_.enqueueWriteBuffer(graph_[orientation][bank], CL_TRUE, 0,
++                                     words.size() * sizeof(words[0]), words.data());
++    }
++    void preload_graph_index(int orientation, const std::vector<uint64_t>& meta,
++                             const std::vector<PartitionedHbm16Word>& directory) {
++        require(orientation >= 0 && orientation < 2 && meta.size() == HOST_PARTITIONED_META_WORDS &&
++                directory.size() == HOST_PARTITIONED_FAMILY_DIRECTORY_WORDS &&
++                header(SR_PHASE) == SR_IDLE && !header(SR_GENERATION) && !header(SR_CONVERGED),
++                "checkpoint index can only be loaded after fresh INIT");
++        // Do not replace the authority and generation words set by device INIT.
++        transfer_.enqueueWriteBuffer(meta_[orientation], CL_TRUE, 0,
++                                     HOST_PARTITIONED_REPAIR_META_BASE * 8ULL, meta.data());
++        transfer_.enqueueWriteBuffer(input_[orientation], CL_TRUE,
++                                     HOST_PARTITIONED_FAMILY_DIRECTORY_OFFSET * 16ULL,
++                                     directory.size() * 16ULL, directory.data());
++    }
++    void preload_converged_distances(const std::vector<uint32_t>& distances) {
++        require(distances.size() == n_ && header(SR_PHASE) == SR_IDLE &&
++                !header(SR_GENERATION) && !header(SR_CONVERGED) &&
++                header(SR_INDEX_VALID) && header(SR_ACK_MASK) == 3 &&
++                distances.at(header(SR_SOURCE)) == 0, "invalid starting distance checkpoint");
++        require_quiescent();
++        transfer_.enqueueWriteBuffer(state_, CL_TRUE, 0, distances.size() * 4ULL, distances.data());
++        header_[SR_CONVERGED].word[0] = 1;
++        transfer_.enqueueWriteBuffer(workspace_, CL_TRUE, SR_CONVERGED * sizeof(header_[0]),
++                                     sizeof(header_[0]), &header_[SR_CONVERGED]);
++    }
+     uint64_t header(int field) const {
+         return uint64_t(header_[field].word[0]) | (uint64_t(header_[field].word[1]) << 32);
+     }

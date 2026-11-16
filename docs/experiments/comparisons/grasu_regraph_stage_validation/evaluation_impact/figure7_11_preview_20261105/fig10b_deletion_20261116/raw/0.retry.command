@@ -1,0 +1,1 @@
+/data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-compatible-host-v3/host_cc_repair --xclbin /data/chuxiao/checks/source-retention-repair-20261104/spine-cc-warm-insert-return-v1/spine_partitioned_split_e2e.cc_repair.hw.xclbin --slice fig10b-au-cc-frozen/board/graph0.txt --update fig10b-au-cc-frozen/board/batch0.txt --hot balanced --mode partial --samples 1 

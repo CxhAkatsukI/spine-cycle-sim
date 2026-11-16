@@ -1,0 +1,133 @@
+FIG10B_BOARD bdf=0000:82:00.1
+FIG10B_START deletion_pct=100 policy=local hot=1
+LJ08_LAYOUT_PASS reverse=0 edges=99028542 max_family=5242360
+LJ08_LAYOUT_PASS reverse=1 edges=99028542 max_family=5242360
+LJ08_BASE_PASS vertices=5363260 edges=99028542 max_in=19432 max_out=19432 graph_bytes_per_bank=521969664 meta_bytes_per_bank=318038016 input_bytes_per_bank=281018368
+FIG10B_RESIDENT_CHECKPOINT_PASS
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":0,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":1,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":2,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":3,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":4,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":5,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":6,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":7,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":8,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":9,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":10,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":11,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":12,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":13,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":14,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":15,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":16,"aligned_bytes":140509184}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":20,"aligned_bytes":159019008}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":0,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":1,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":2,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":3,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":4,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":5,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":6,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":7,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":8,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":9,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":10,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":11,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":12,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":13,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":14,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":15,"aligned_bytes":260984832}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":16,"aligned_bytes":140509184}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":20,"aligned_bytes":159019008}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":18,"aligned_bytes":136732672}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":17,"aligned_bytes":21454848}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":19,"aligned_bytes":42909696}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":22,"aligned_bytes":10489856}
+
+ENGINE_STORAGE_REQUEST {"authority":"host_allocation_request_not_residency","bank":21,"aligned_bytes":4096}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":0,"composition":[1,1,1,1,1],"mode":100,"count_argument":26,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":8,"rounds":0,"row_queries":0,"physical_records":0,"live_records":0,"dependency_edges":0,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,0,0,0,0,0,0,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":1,"composition":[1,1,1,1,1],"mode":113,"count_argument":0,"orientation":1,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":0,"rounds":0,"row_queries":0,"physical_records":0,"live_records":0,"dependency_edges":0,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,0,0,0,0,0,0,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":2,"composition":[1,1,1,1,1],"mode":119,"count_argument":512,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":1,"rounds":0,"row_queries":1083,"physical_records":138053,"live_records":138053,"dependency_edges":13608,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,0,12,0,0,0,0,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":3,"composition":[1,1,1,1,1],"mode":114,"count_argument":0,"orientation":1,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":9,"rounds":0,"row_queries":1594,"physical_records":265118,"live_records":265118,"dependency_edges":13608,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,1,1,1,1,0,12,0,0,0,0,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":4,"composition":[1,1,1,1,1],"mode":103,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":2,"rounds":0,"row_queries":1594,"physical_records":265118,"live_records":265118,"dependency_edges":13608,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[512,0,11,16,131072,0,0,512,2,0,6,0,512,512,3538313570,3418760988,25,22,28,30,28,15,0,0,0,0,0,0,0,0,0,0,22,512,0,0,0,364,148,148,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,148,0,364,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,364,0,6,18178,512,512,0,0,0,512,1,987728081,4232997331,560886516,2047915833,512,0,496,512,0,524289,0,262272,2,1,1,1,1,1,0,13,0,0,0,0,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":5,"composition":[1,1,1,1,1],"mode":104,"count_argument":0,"orientation":1,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":3,"rounds":0,"row_queries":1594,"physical_records":265118,"live_records":265118,"dependency_edges":13608,"incoming_edges":0,"relax_edges":0,"reset_vertices":0},"result_words":[512,0,11,16,131072,0,0,512,2,0,6,0,512,512,196544116,3553078044,24,25,34,23,27,11,0,0,0,0,0,0,0,0,0,0,22,511,0,0,0,368,144,144,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,144,0,367,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":6,"composition":[1,1,1,1,1],"mode":105,"count_argument":0,"orientation":1,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":4,"rounds":0,"row_queries":2165,"physical_records":278766,"live_records":278686,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":0,"reset_vertices":571},"result_words":[512,0,11,16,131072,0,0,512,2,0,6,0,512,512,196544116,3553078044,24,25,34,23,27,11,0,0,0,0,0,0,0,0,0,0,22,511,0,0,0,368,144,144,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,144,0,367,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":7,"composition":[1,1,1,1,1],"mode":106,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":366,"payloads":366,"overflow":0,"touched_tiles":276,"marked_tiles":0,"nonempty_tiles":276,"empty_tile_passes":0,"tile_vertices":65536,"gathered_words":366,"swept_words":0,"scattered_words":366,"protocol_status":0,"source_requests":0,"source_responses":0,"owner_status":0,"owner_created":366,"owner_retired":0,"owner_credits":366,"owner_dispatched":0,"owner_completed":0,"owner_reactivations":0,"owner_queued":366,"owner_quiescent":0},"controller_snapshots":{"status":0,"phase":6,"rounds":1,"row_queries":2165,"physical_records":278766,"live_records":278686,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":0,"reset_vertices":571},"result_words":[366,366,0,11,16,276,0,276,0,0,0,0,0,65536,16,276,0,366,0,366,4096,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,366,0,366,0,0,0,0,366,0,0,0,0,0,0,0,137,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":8,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":5,"rounds":1,"row_queries":2165,"physical_records":278766,"live_records":278686,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":0,"reset_vertices":571},"result_words":[366,366,0,11,16,276,0,276,0,0,0,0,0,65536,16,276,0,366,0,366,4096,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,366,0,366,0,0,0,0,366,0,0,0,0,0,0,0,137,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":9,"composition":[1,1,1,1,1],"mode":107,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":367,"payloads":13366,"overflow":0,"touched_tiles":5708,"marked_tiles":0,"nonempty_tiles":213,"empty_tile_passes":5495,"tile_vertices":65536,"gathered_words":13366,"swept_words":0,"scattered_words":370,"protocol_status":0,"source_requests":366,"source_responses":366,"owner_status":0,"owner_created":367,"owner_retired":366,"owner_credits":367,"owner_dispatched":366,"owner_completed":366,"owner_reactivations":154,"owner_queued":367,"owner_quiescent":0},"controller_snapshots":{"status":0,"phase":6,"rounds":2,"row_queries":2531,"physical_records":292132,"live_records":292052,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":13366,"reset_vertices":571},"result_words":[367,13366,0,11,16,5708,0,213,5495,0,0,0,0,65536,16,5708,0,13366,0,370,4096,0,0,0,0,0,0,0,0,0,0,0,0,366,366,2,366,0,0,0,1,0,367,366,367,366,366,3,154,367,0,0,0,0,0,0,0,98,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":10,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":5,"rounds":2,"row_queries":2531,"physical_records":292132,"live_records":292052,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":13366,"reset_vertices":571},"result_words":[367,13366,0,11,16,5708,0,213,5495,0,0,0,0,65536,16,5708,0,13366,0,370,4096,0,0,0,0,0,0,0,0,0,0,0,0,366,366,2,366,0,0,0,1,0,367,366,367,366,366,3,154,367,0,0,0,0,0,0,0,98,77,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":11,"composition":[1,1,1,1,1],"mode":107,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":163,"payloads":2849,"overflow":0,"touched_tiles":1654,"marked_tiles":0,"nonempty_tiles":75,"empty_tile_passes":1579,"tile_vertices":65536,"gathered_words":2849,"swept_words":0,"scattered_words":165,"protocol_status":0,"source_requests":367,"source_responses":367,"owner_status":0,"owner_created":163,"owner_retired":367,"owner_credits":163,"owner_dispatched":367,"owner_completed":367,"owner_reactivations":24,"owner_queued":163,"owner_quiescent":0},"controller_snapshots":{"status":0,"phase":6,"rounds":3,"row_queries":2898,"physical_records":294981,"live_records":294901,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16215,"reset_vertices":571},"result_words":[163,2849,0,11,16,1654,0,75,1579,0,0,0,0,65536,16,1654,0,2849,0,165,4096,0,0,0,0,0,0,0,0,0,0,0,0,367,367,3,367,0,0,0,1,0,163,367,163,367,367,2,24,163,0,0,0,0,0,0,0,80,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":12,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":5,"rounds":3,"row_queries":2898,"physical_records":294981,"live_records":294901,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16215,"reset_vertices":571},"result_words":[163,2849,0,11,16,1654,0,75,1579,0,0,0,0,65536,16,1654,0,2849,0,165,4096,0,0,0,0,0,0,0,0,0,0,0,0,367,367,3,367,0,0,0,1,0,163,367,163,367,367,2,24,163,0,0,0,0,0,0,0,80,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":13,"composition":[1,1,1,1,1],"mode":107,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":26,"payloads":541,"overflow":0,"touched_tiles":317,"marked_tiles":0,"nonempty_tiles":25,"empty_tile_passes":292,"tile_vertices":65536,"gathered_words":541,"swept_words":0,"scattered_words":27,"protocol_status":0,"source_requests":163,"source_responses":163,"owner_status":0,"owner_created":26,"owner_retired":163,"owner_credits":26,"owner_dispatched":163,"owner_completed":163,"owner_reactivations":5,"owner_queued":26,"owner_quiescent":0},"controller_snapshots":{"status":0,"phase":6,"rounds":4,"row_queries":3061,"physical_records":295522,"live_records":295442,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16756,"reset_vertices":571},"result_words":[26,541,0,11,16,317,0,25,292,0,0,0,0,65536,16,317,0,541,0,27,4096,0,0,0,0,0,0,0,0,0,0,0,0,163,163,4,163,0,0,0,1,0,26,163,26,163,163,1,5,26,0,0,0,0,0,0,0,8,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":14,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":5,"rounds":4,"row_queries":3061,"physical_records":295522,"live_records":295442,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16756,"reset_vertices":571},"result_words":[26,541,0,11,16,317,0,25,292,0,0,0,0,65536,16,317,0,541,0,27,4096,0,0,0,0,0,0,0,0,0,0,0,0,163,163,4,163,0,0,0,1,0,26,163,26,163,163,1,5,26,0,0,0,0,0,0,0,8,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":15,"composition":[1,1,1,1,1],"mode":107,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":7,"payloads":155,"overflow":0,"touched_tiles":87,"marked_tiles":0,"nonempty_tiles":5,"empty_tile_passes":82,"tile_vertices":65536,"gathered_words":155,"swept_words":0,"scattered_words":7,"protocol_status":0,"source_requests":26,"source_responses":26,"owner_status":0,"owner_created":7,"owner_retired":26,"owner_credits":7,"owner_dispatched":26,"owner_completed":26,"owner_reactivations":1,"owner_queued":7,"owner_quiescent":0},"controller_snapshots":{"status":0,"phase":6,"rounds":5,"row_queries":3087,"physical_records":295677,"live_records":295597,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16911,"reset_vertices":571},"result_words":[7,155,0,11,16,87,0,5,82,0,0,0,0,65536,16,87,0,155,0,7,4096,0,0,0,0,0,0,0,0,0,0,0,0,26,26,5,26,0,0,0,1,0,7,26,7,26,26,0,1,7,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":16,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":5,"rounds":5,"row_queries":3087,"physical_records":295677,"live_records":295597,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16911,"reset_vertices":571},"result_words":[7,155,0,11,16,87,0,5,82,0,0,0,0,65536,16,87,0,155,0,7,4096,0,0,0,0,0,0,0,0,0,0,0,0,26,26,5,26,0,0,0,1,0,7,26,7,26,26,0,1,7,0,0,0,0,0,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":17,"composition":[1,1,1,1,1],"mode":107,"count_argument":0,"orientation":0,"stream_invocation":1,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","stream_counters":{"next_active":0,"payloads":12,"overflow":0,"touched_tiles":8,"marked_tiles":0,"nonempty_tiles":0,"empty_tile_passes":8,"tile_vertices":65536,"gathered_words":12,"swept_words":0,"scattered_words":0,"protocol_status":0,"source_requests":7,"source_responses":7,"owner_status":0,"owner_created":0,"owner_retired":7,"owner_credits":0,"owner_dispatched":7,"owner_completed":7,"owner_reactivations":0,"owner_queued":0,"owner_quiescent":1},"controller_snapshots":{"status":0,"phase":6,"rounds":6,"row_queries":3094,"physical_records":295689,"live_records":295609,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16923,"reset_vertices":571},"result_words":[0,12,0,11,16,8,0,0,8,0,0,0,0,65536,16,8,0,12,0,0,4096,0,0,0,0,0,0,0,0,0,0,0,0,7,7,6,7,0,0,0,1,0,0,7,0,7,7,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":18,"composition":[1,1,1,1,1],"mode":108,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":1,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":3,"rounds":6,"row_queries":3094,"physical_records":295689,"live_records":295609,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16923,"reset_vertices":571},"result_words":[0,12,0,11,16,8,0,0,8,0,0,0,0,65536,16,8,0,12,0,0,4096,0,0,0,0,0,0,0,0,0,0,0,0,7,7,6,7,0,0,0,1,0,0,7,0,7,7,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,368,0,6,18178,511,511,0,0,0,511,1,2144893657,3286148092,150023534,3070523542,511,0,498,511,1,524289,0,327808,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":19,"composition":[1,1,1,1,1],"mode":111,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":3,"rounds":6,"row_queries":3094,"physical_records":295689,"live_records":295609,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16923,"reset_vertices":571},"result_words":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,18178,0,0,0,3,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":20,"composition":[1,1,1,1,1],"mode":112,"count_argument":0,"orientation":1,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":3,"rounds":6,"row_queries":3094,"physical_records":295689,"live_records":295609,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16923,"reset_vertices":571},"result_words":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,18178,0,0,0,3,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,0,13,1,0,0,1,0,1,0,1]}
+
+ENGINE_DEVICE_WORK {"schema":1,"sequence":21,"composition":[1,1,1,1,1],"mode":110,"count_argument":0,"orientation":0,"stream_invocation":0,"device_result_observed":1,"accepted":1,"drained_source_close":0,"counter_scope":"single_launch_u32_stream_and_cumulative_controller_snapshots","controller_snapshots":{"status":0,"phase":0,"rounds":6,"row_queries":3094,"physical_records":295689,"live_records":295609,"dependency_edges":13608,"incoming_edges":13568,"relax_edges":16923,"reset_vertices":571},"result_words":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,18178,0,0,0,3,0,0,2,0,0,0,0,0,0,0,0,0,0,0,1,2,1,1,1,1,1,0,0,1,1,0,1,571,1,1,1]}
+FIG10B_PASS deletion_pct=100 deletions=512 insertions=0 wall_ms=1011.838683 publication_ms=1004.952631 affected=571 resets=571 rounds=6 records=295689
