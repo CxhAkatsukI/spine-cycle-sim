@@ -1,0 +1,75 @@
+SHARDED_METADATA_POLICY replicas=4 updated_shards=4 used_banks=4 allocated_bytes=258535424 placement=fixed_four selection=capacity_only
+SHARED_RESPR_CHECKPOINT path=/data/chuxiao/fig7-respr-propagation-fig10b-20261116.cnPau7QX/respr-matrix/SU/rank.f32 old_active=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_INPUT vertices=567316 static_edges=1075035 logical_updates=8 physical_updates=8 final_edges=1075043 destination_partitions=9 pma_slots_total=10168880 hbm_graph_allocated_bytes=258535424 damping=0.85 epsilon=3e-09 threshold_semantics=direct_per_vertex oracle_correction_active=16 oracle_propagation_rounds=16 oracle_converged=1
+GRASU_SHARDED_UPDATE_LAYOUT shard=1 destination_base=65536 destination_vertices=65536 updates=4 unique_sources=3 pma_slots=1322192 source_segments=6 binary_probes=2 cache_updates=4 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=2 destination_base=131072 destination_vertices=65536 updates=2 unique_sources=1 pma_slots=1155280 source_segments=2 binary_probes=0 cache_updates=2 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=5 destination_base=327680 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1030000 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_SHARDED_UPDATE_LAYOUT shard=6 destination_base=393216 destination_vertices=65536 updates=1 unique_sources=1 pma_slots=1022064 source_segments=1 binary_probes=0 cache_updates=1 ddr_updates=0
+GRASU_REGRAPH_DEVICE bdf=0000:82:00.1
+Using XCL_DEVICE_INDEX=0
+SHARDED_INPUT_RESIDENCY policy=premigrate buffers=114 bytes=258184888 wall_ms=28.1852 event_ms=28.1532 boundary=initial_setup_before_updates
+GRASU_SHARDED_UPDATE_REPEAT_CONFIG repeats=1 restore_pma_between_repeats=1 restore_degree=1
+GRASU_SHARDED_UPDATE_EVENTS shard=1 gap_from_previous_ms=0.000000 union_ms=0.853777 cache0_ms=0.853497 cache1_ms=0.745974 ddr0_ms=0.314950 ddr1_ms=0.287649 degree_ms=0.255668 dispatch_ms=0.245448 search0_ms=0.111884 search1_ms=0.074803 search2_ms=0.119673 search3_ms=0.052952
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=cache0 queued_offset_ms=0.000000 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000290 execute_ms=0.853497 start_offset_ms=0.000000 end_offset_ms=0.853497
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=cache1 queued_offset_ms=0.108013 queued_to_submit_ms=0.000030 submit_to_start_ms=0.000110 execute_ms=0.745974 start_offset_ms=0.107803 end_offset_ms=0.853777
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=ddr0 queued_offset_ms=0.138314 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000060 execute_ms=0.314950 start_offset_ms=0.138064 end_offset_ms=0.453014
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=ddr1 queued_offset_ms=0.165975 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000060 execute_ms=0.287649 start_offset_ms=0.165725 end_offset_ms=0.453374
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=degree queued_offset_ms=0.198366 queued_to_submit_ms=0.000070 submit_to_start_ms=0.000100 execute_ms=0.255668 start_offset_ms=0.198186 end_offset_ms=0.453854
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=dispatch queued_offset_ms=0.227107 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000090 execute_ms=0.245448 start_offset_ms=0.226907 end_offset_ms=0.472355
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=search0 queued_offset_ms=0.260768 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000110 execute_ms=0.111884 start_offset_ms=0.260588 end_offset_ms=0.372472
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=search1 queued_offset_ms=0.298569 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000090 execute_ms=0.074803 start_offset_ms=0.298369 end_offset_ms=0.373172
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=search2 queued_offset_ms=0.334691 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000090 execute_ms=0.119673 start_offset_ms=0.334491 end_offset_ms=0.454164
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=1 cu=search3 queued_offset_ms=0.411493 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000100 execute_ms=0.052952 start_offset_ms=0.411303 end_offset_ms=0.464255
+GRASU_SHARDED_UPDATE_EVENTS shard=2 gap_from_previous_ms=0.282978 union_ms=0.661191 cache0_ms=0.632580 cache1_ms=0.635260 ddr0_ms=0.199696 ddr1_ms=0.160155 degree_ms=0.132194 dispatch_ms=0.105243 search0_ms=0.071092 search1_ms=0.055832 search2_ms=0.062482 search3_ms=0.057242
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=cache0 queued_offset_ms=0.000000 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000150 execute_ms=0.632580 start_offset_ms=0.000000 end_offset_ms=0.632580
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=cache1 queued_offset_ms=0.026011 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000070 execute_ms=0.635260 start_offset_ms=0.025931 end_offset_ms=0.661191
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=ddr0 queued_offset_ms=0.049622 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000090 execute_ms=0.199696 start_offset_ms=0.049562 end_offset_ms=0.249258
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=ddr1 queued_offset_ms=0.089643 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000100 execute_ms=0.160155 start_offset_ms=0.089593 end_offset_ms=0.249748
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=degree queued_offset_ms=0.117884 queued_to_submit_ms=0.000100 submit_to_start_ms=0.000110 execute_ms=0.132194 start_offset_ms=0.117904 end_offset_ms=0.250098
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=dispatch queued_offset_ms=0.145155 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000080 execute_ms=0.105243 start_offset_ms=0.145105 end_offset_ms=0.250348
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=search0 queued_offset_ms=0.179646 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000090 execute_ms=0.071092 start_offset_ms=0.179606 end_offset_ms=0.250698
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=search1 queued_offset_ms=0.210897 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000080 execute_ms=0.055832 start_offset_ms=0.210847 end_offset_ms=0.266679
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=search2 queued_offset_ms=0.239918 queued_to_submit_ms=0.000090 submit_to_start_ms=0.000090 execute_ms=0.062482 start_offset_ms=0.239908 end_offset_ms=0.302390
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=2 cu=search3 queued_offset_ms=0.270169 queued_to_submit_ms=0.000050 submit_to_start_ms=0.000080 execute_ms=0.057242 start_offset_ms=0.270109 end_offset_ms=0.327351
+GRASU_SHARDED_UPDATE_EVENTS shard=5 gap_from_previous_ms=0.235647 union_ms=0.592849 cache0_ms=0.566618 cache1_ms=0.563078 ddr0_ms=0.158705 ddr1_ms=0.134044 degree_ms=0.106943 dispatch_ms=0.077443 search0_ms=0.059722 search1_ms=0.063522 search2_ms=0.056972 search3_ms=0.053572
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=cache0 queued_offset_ms=0.000000 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000100 execute_ms=0.566618 start_offset_ms=0.000000 end_offset_ms=0.566618
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=cache1 queued_offset_ms=0.029751 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000100 execute_ms=0.563078 start_offset_ms=0.029771 end_offset_ms=0.592849
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=ddr0 queued_offset_ms=0.055992 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000070 execute_ms=0.158705 start_offset_ms=0.055962 end_offset_ms=0.214667
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=ddr1 queued_offset_ms=0.081063 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000080 execute_ms=0.134044 start_offset_ms=0.081043 end_offset_ms=0.215087
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=degree queued_offset_ms=0.108644 queued_to_submit_ms=0.000070 submit_to_start_ms=0.000090 execute_ms=0.106943 start_offset_ms=0.108664 end_offset_ms=0.215607
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=dispatch queued_offset_ms=0.138444 queued_to_submit_ms=0.000080 submit_to_start_ms=0.000080 execute_ms=0.077443 start_offset_ms=0.138464 end_offset_ms=0.215907
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=search0 queued_offset_ms=0.168785 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000080 execute_ms=0.059722 start_offset_ms=0.168785 end_offset_ms=0.228507
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=search1 queued_offset_ms=0.201606 queued_to_submit_ms=0.000070 submit_to_start_ms=0.000110 execute_ms=0.063522 start_offset_ms=0.201646 end_offset_ms=0.265168
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=search2 queued_offset_ms=0.232417 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000060 execute_ms=0.056972 start_offset_ms=0.232377 end_offset_ms=0.289349
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=5 cu=search3 queued_offset_ms=0.259138 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000060 execute_ms=0.053572 start_offset_ms=0.259098 end_offset_ms=0.312670
+GRASU_SHARDED_UPDATE_EVENTS shard=6 gap_from_previous_ms=0.214056 union_ms=0.590278 cache0_ms=0.564798 cache1_ms=0.563607 ddr0_ms=0.150884 ddr1_ms=0.128214 degree_ms=0.100783 dispatch_ms=0.076082 search0_ms=0.055252 search1_ms=0.058262 search2_ms=0.052012 search3_ms=0.048421
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=cache0 queued_offset_ms=0.000000 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000130 execute_ms=0.564798 start_offset_ms=0.000000 end_offset_ms=0.564798
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=cache1 queued_offset_ms=0.026741 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000060 execute_ms=0.563607 start_offset_ms=0.026671 end_offset_ms=0.590278
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=ddr0 queued_offset_ms=0.048842 queued_to_submit_ms=0.000040 submit_to_start_ms=0.000050 execute_ms=0.150884 start_offset_ms=0.048762 end_offset_ms=0.199646
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=ddr1 queued_offset_ms=0.072092 queued_to_submit_ms=0.000030 submit_to_start_ms=0.000060 execute_ms=0.128214 start_offset_ms=0.072012 end_offset_ms=0.200226
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=degree queued_offset_ms=0.099793 queued_to_submit_ms=0.000080 submit_to_start_ms=0.000100 execute_ms=0.100783 start_offset_ms=0.099803 end_offset_ms=0.200586
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=dispatch queued_offset_ms=0.124754 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000090 execute_ms=0.076082 start_offset_ms=0.124734 end_offset_ms=0.200816
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=search0 queued_offset_ms=0.157755 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000100 execute_ms=0.055252 start_offset_ms=0.157745 end_offset_ms=0.212997
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=search1 queued_offset_ms=0.191276 queued_to_submit_ms=0.000050 submit_to_start_ms=0.000090 execute_ms=0.058262 start_offset_ms=0.191246 end_offset_ms=0.249508
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=search2 queued_offset_ms=0.222157 queued_to_submit_ms=0.000060 submit_to_start_ms=0.000060 execute_ms=0.052012 start_offset_ms=0.222107 end_offset_ms=0.274119
+GRASU_SHARDED_UPDATE_EVENTS_PHASE shard=6 cu=search3 queued_offset_ms=0.248728 queued_to_submit_ms=0.000050 submit_to_start_ms=0.000060 execute_ms=0.048421 start_offset_ms=0.248668 end_offset_ms=0.297089
+GRASU_SHARDED_UPDATE_REPEAT repeat=0 final=1 update_ms=3.430776
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=1 phase=correction l1_error=0.000002 dangling=0.000000 active_vertices=24
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=2 phase=propagation l1_error=0.000002 dangling=0.000000 active_vertices=44
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=3 phase=propagation l1_error=0.000002 dangling=0.000000 active_vertices=45
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=4 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=143
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=5 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=14
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=6 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=25
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=7 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=2
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=8 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=9 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=10 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=11 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=12 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=13 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=14 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=15 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=16 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=1
+RESIDUAL_PR_PMA_NATIVE_SHARDED_ROUND round=17 phase=propagation l1_error=0.000001 dangling=0.000000 active_vertices=0
+RESIDUAL_PR_PMA_NATIVE_SHARDED_TIMING update_ms=3.430776 source_prepare_ms=0.808125 adapter_ms=345.823328 lksg_ms=360.529592 mux_ms=100.584905 apply_ms=102.213253 hbm_ms=102.723889 device_e2e_ms=109.229461 setup_inclusive_ms=110.279664
+RESIDUAL_PR_PMA_NATIVE_SHARDED_RESULT status=PASS rank_mismatches=0 degree_mismatches=0 max_abs_error=0.000000 rank_error_l1=0.000000 rank_expected_l1=1.000001 rank_error_l1_limit=0.001100 rank_nonfinite=0 pipeline_executions=17 propagation_rounds=16 hardware_converged=1 oracle_propagation_rounds=16 oracle_converged=1 epsilon=0.000000 threshold_semantics=direct_per_vertex vertices=567316 final_edges=1075043 logical_updates=8 physical_updates=8 destination_partitions=9 k4_frontends=4 shared_regraph_downstream=1 pma_slots_total=10168880 processed_edge_slots_per_execution=10168880 resident_state=old_graph_converged conversion_cost=absent

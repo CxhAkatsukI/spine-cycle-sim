@@ -1,0 +1,10 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph vertices=515281 initial_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856
+RESIDENT_PREFLIGHT epsilon=1e-06 old_active=0 updated_active=0 old_max_residual=5.45697e-12 updated_max_residual=1.79082e-07 initial_logical_edges=0
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph vertices=515281 initial_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856
+RESIDENT_PREFLIGHT epsilon=3e-07 old_active=0 updated_active=0 old_max_residual=5.45697e-12 updated_max_residual=1.79082e-07 initial_logical_edges=0
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph vertices=515281 initial_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856
+RESIDENT_PREFLIGHT epsilon=1e-07 old_active=0 updated_active=8 old_max_residual=5.45697e-12 updated_max_residual=1.79082e-07 initial_logical_edges=1566
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph vertices=515281 initial_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856
+RESIDENT_PREFLIGHT epsilon=3e-08 old_active=0 updated_active=8 old_max_residual=5.45697e-12 updated_max_residual=1.79082e-07 initial_logical_edges=1566
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/au_residual_pagerank_insert_u8.graph vertices=515281 initial_edges=826848 logical_updates=8 physical_updates=8 final_edges=826856
+RESIDENT_PREFLIGHT epsilon=1e-08 old_active=0 updated_active=8 old_max_residual=5.45697e-12 updated_max_residual=1.79082e-07 initial_logical_edges=1566

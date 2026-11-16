@@ -1,0 +1,9 @@
+dataset,absolute_threshold,vertices,initial_edges,insertions,checkpoint_old_max_abs_residual,batch_max_abs_residual,checkpoint_old_active,spine_initial_active,gr_initial_active,spine_rounds,gr_rounds,spine_logical_edges_served,spine_wall_ms,gr_wall_ms,spine_speedup,activity_counts_match,spine_correctness,gr_correctness,pairs,fpga_bdf,origin,evidence
+AU,1e-7,515281,826848,8,5.45697e-12,1.79082e-07,0,8,8,4,4,1569,21.3865,31.495064,1.472661,1,PASS,PASS,1,0000:82:00.1,retained_exact,evidence/high/AU/
+SU,1e-7,567316,1075035,8,5.45697e-12,1.86062e-07,0,5,5,2,2,3617,23.9193,24.012518,1.003897,1,PASS,PASS,1,0000:82:00.1,retained_exact,evidence/high/SU/
+WK,1e-7,1140149,2190639,8,2.72848e-12,6.24166e-08,0,0,0,0,0,0,2.25625,23.440459,10.389123,1,PASS,PASS,1,0000:82:00.1,new,evidence/high/WK/
+SO,1e-7,6024271,28299669,8,1.36424e-12,6.86032e-09,0,0,0,0,0,0,16.7699,354.967249,21.166927,1,PASS,PASS,1,0000:82:00.1,new,evidence/high/SO/
+PK,1e-7,1632803,44603928,8,4.45652e-11,3.99236e-08,0,0,0,0,0,0,2.73247,75.012017,27.452092,1,PASS,PASS,1,0000:82:00.1,new,evidence/high/PK/
+LJ,1e-7,4847571,85703436,8,2.21917e-10,1.72448e-08,0,0,0,0,0,0,4.53027,276.708914,61.080005,1,PASS,PASS,1,0000:82:00.1,new,evidence/high/LJ/
+LJ08,1e-7,5363260,99028616,8,6.40284e-10,2.92054e-08,0,0,0,0,0,0,4.4438,327.763048,73.757381,1,PASS,PASS,1,0000:82:00.1,new,evidence/high/LJ08/
+R19,1e-7,524288,15672181,8,0,8.982e-07,0,10,10,4,4,20857,60.964,70.244943,1.152236,1,PASS,PASS,1,0000:82:00.1,retained_exact,evidence/high/R19/

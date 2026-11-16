@@ -1,0 +1,219 @@
+DYNAMIC_GRAPH_LOAD_PASS case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_residual_pagerank_insert_u8.graph vertices=524288 initial_edges=15672181 logical_updates=8 physical_updates=8 final_edges=15672189
+Using XCL_DEVICE_INDEX=0
+SPINE_DEVICE bdf=0000:82:00.1
+VERTEX_LIFECYCLE_HW_PASS vertex=524287 transitions=deactivate,activate
+RESIDENT_CORRECTION_CACHE scope=old_graph_only_single_batch bytes=77368796 preparation_ms=347.915 included_in_dynamic_wall=0
+SPINE_HOST_MAINT_PHASE arguments_ms=0.025841 kernel_wall_ms=0.184935 readback_wall_ms=0.046192
+SPINE_DYNAMIC_MAINT_PASS logical_updates=8 physical_updates=8 target_level=0 path=2 hot_edges=0 cold_edges=8
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.32807 upload_wall_ms=0.179005 arguments_ms=0.039771 kernel_wall_ms=53.5538 readback_wall_ms=1.39689 decode_ms=0.676821 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.358611 upload_wall_ms=0.199486 arguments_ms=0.049372 kernel_wall_ms=143.928 readback_wall_ms=1.3305 decode_ms=0.749573 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.3106 upload_wall_ms=0.204216 arguments_ms=0.048622 kernel_wall_ms=116.631 readback_wall_ms=1.34456 decode_ms=0.667961 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.348 upload_wall_ms=0.203907 arguments_ms=0.053471 kernel_wall_ms=83.4567 readback_wall_ms=1.33101 decode_ms=0.705462 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.369831 upload_wall_ms=0.204757 arguments_ms=0.052041 kernel_wall_ms=83.443 readback_wall_ms=1.41751 decode_ms=0.691972 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.34074 upload_wall_ms=0.206237 arguments_ms=0.051271 kernel_wall_ms=5.22839 readback_wall_ms=1.3339 decode_ms=0.704212 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.352481 upload_wall_ms=0.195216 arguments_ms=0.045382 kernel_wall_ms=81.889 readback_wall_ms=1.30142 decode_ms=0.712502 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.331891 upload_wall_ms=0.193036 arguments_ms=0.066792 kernel_wall_ms=7.34856 readback_wall_ms=1.38649 decode_ms=0.721093 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.338711 upload_wall_ms=0.203836 arguments_ms=0.045061 kernel_wall_ms=1.43976 readback_wall_ms=1.25216 decode_ms=0.585408 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.31333 upload_wall_ms=0.203076 arguments_ms=0.041142 kernel_wall_ms=1.43175 readback_wall_ms=1.24828 decode_ms=0.492036 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.29943 upload_wall_ms=0.187925 arguments_ms=0.039702 kernel_wall_ms=1.43104 readback_wall_ms=1.23806 decode_ms=0.464314 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.31526 upload_wall_ms=0.186645 arguments_ms=0.039402 kernel_wall_ms=1.42975 readback_wall_ms=1.2374 decode_ms=0.474465 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.300799 upload_wall_ms=0.189826 arguments_ms=0.039902 kernel_wall_ms=1.42876 readback_wall_ms=1.24198 decode_ms=0.493015 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.32803 upload_wall_ms=0.191506 arguments_ms=0.040341 kernel_wall_ms=1.43951 readback_wall_ms=1.23568 decode_ms=0.514676 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.348481 upload_wall_ms=0.187836 arguments_ms=0.039831 kernel_wall_ms=1.43131 readback_wall_ms=1.3905 decode_ms=0.495575 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.32952 upload_wall_ms=0.192116 arguments_ms=0.040661 kernel_wall_ms=1.43773 readback_wall_ms=1.33343 decode_ms=0.536187 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.32132 upload_wall_ms=0.196417 arguments_ms=0.040651 kernel_wall_ms=1.43417 readback_wall_ms=1.25419 decode_ms=0.490405 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.306529 upload_wall_ms=0.198166 arguments_ms=0.039061 kernel_wall_ms=1.42959 readback_wall_ms=1.37373 decode_ms=0.472655 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.305929 upload_wall_ms=0.191736 arguments_ms=0.038661 kernel_wall_ms=0.904619 readback_wall_ms=1.24067 decode_ms=0.448544 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.290739 upload_wall_ms=0.182385 arguments_ms=0.038711 kernel_wall_ms=0.901819 readback_wall_ms=1.23734 decode_ms=0.447294 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.286839 upload_wall_ms=0.182466 arguments_ms=0.046442 kernel_wall_ms=0.901828 readback_wall_ms=1.32479 decode_ms=0.422173 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.284829 upload_wall_ms=0.189576 arguments_ms=0.038341 kernel_wall_ms=0.895028 readback_wall_ms=1.24093 decode_ms=0.433914 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.31455 upload_wall_ms=0.194136 arguments_ms=0.038631 kernel_wall_ms=0.893798 readback_wall_ms=1.32403 decode_ms=0.445244 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.291319 upload_wall_ms=0.188506 arguments_ms=0.038541 kernel_wall_ms=0.891408 readback_wall_ms=1.32075 decode_ms=0.428593 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.32618 upload_wall_ms=0.185316 arguments_ms=0.038261 kernel_wall_ms=0.897048 readback_wall_ms=1.24522 decode_ms=0.431694 active_record_capacity=16777216 active_records_used=0
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=input_migration_end
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=kernel_pair_end
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_begin
+KERNEL_PAIR_PHASE algorithm=2 phase=output_migration_end
+SPINE_HOST_PHASE algorithm=2 prepare_ms=0.295749 upload_wall_ms=0.183936 arguments_ms=0.039341 kernel_wall_ms=0.899088 readback_wall_ms=1.39203 decode_ms=0.477935 active_record_capacity=16777216 active_records_used=0
+RESIDENT_CORRECTION mode=old_incoming_fp32_sparse_replay dense_dangling_fallback=0 host_update_and_state_upload_in_dynamic_wall=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=0 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=127 processed_edges=33156 source_status=0 source_requests=22 dirty_count=22 owner_status=0 owner_credits=41 owner_created=63 owner_retired=22 owner_reactivations=6 owner_queued=41 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=35 reactivation_fifo_max_occupancy=6
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=1 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=280 processed_edges=115685 source_status=0 source_requests=41 dirty_count=41 owner_status=0 owner_credits=24 owner_created=24 owner_retired=41 owner_reactivations=15 owner_queued=24 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=9 reactivation_fifo_max_occupancy=15
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=2 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=156 processed_edges=84837 source_status=0 source_requests=24 dirty_count=24 owner_status=0 owner_credits=17 owner_created=17 owner_retired=24 owner_reactivations=17 owner_queued=17 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=17
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=3 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=100 processed_edges=50978 source_status=0 source_requests=17 dirty_count=17 owner_status=0 owner_credits=17 owner_created=17 owner_retired=17 owner_reactivations=17 owner_queued=17 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=17
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=4 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=100 processed_edges=50978 source_status=0 source_requests=17 dirty_count=17 owner_status=0 owner_credits=6 owner_created=6 owner_retired=17 owner_reactivations=6 owner_queued=6 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=6
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=5 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=18 processed_edges=329 source_status=0 source_requests=6 dirty_count=6 owner_status=0 owner_credits=15 owner_created=15 owner_retired=6 owner_reactivations=6 owner_queued=15 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=9 reactivation_fifo_max_occupancy=6
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=6 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=84 processed_edges=49312 source_status=0 source_requests=15 dirty_count=15 owner_status=0 owner_credits=4 owner_created=4 owner_retired=15 owner_reactivations=2 owner_queued=4 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=2 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=7 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=18 processed_edges=1668 source_status=0 source_requests=4 dirty_count=4 owner_status=0 owner_credits=2 owner_created=2 owner_retired=4 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=8 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=9 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=10 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=11 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=12 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=13 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=14 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=15 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=16 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=2 owner_created=2 owner_retired=2 owner_reactivations=2 owner_queued=2 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=2
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=17 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=2 processed_edges=2 source_status=0 source_requests=2 dirty_count=2 owner_status=0 owner_credits=1 owner_created=1 owner_retired=2 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=18 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=19 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=20 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=21 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=22 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=23 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=24 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=1 owner_created=1 owner_retired=1 owner_reactivations=1 owner_queued=1 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=1
+KERNEL_PAIR_RESULT algorithm=resident_benchmark iteration=25 overflow=0 task_error=0 task_path=1 fallback_reason=0 task_count=1 processed_edges=1 source_status=0 source_requests=1 dirty_count=1 owner_status=0 owner_credits=0 owner_created=0 owner_retired=1 owner_reactivations=0 owner_queued=0 owner_fifo_backpressure=0 reactivation_fifo_backpressure=0 owner_fifo_max_occupancy=0 reactivation_fifo_max_occupancy=0
+RESIDENT_PROPAGATION epsilon=3e-09 initial_active=22 rounds=26 logical_edges_served=386971 status=PASS
+SPINE_RESIDENT_BENCHMARK_PASS algorithm=2 case=/data/tmp/chuxiao/fullgraph_fpga_workloads_20260806/r19_residual_pagerank_insert_u8.graph:final vertices=524288 source=0 iterations=26 logical_updates=8 physical_updates=8 boundary=resident_update_to_final_readback_wall_including_host_relaunch wall_ms=665.22 final_validation=outside_wall full_state_readback=each_round host_correction_included=1
+SPINE_HW_TIMING algorithm=thresholded_residual_pagerank logical_updates=8 physical_updates=8 maintenance_input_ms=0.054321 maintenance_kernel_ms=0.133124 maintenance_output_ms=0.028221 maintenance_device_e2e_ms=0.215666 maintenance_setup_inclusive_ms=0.337441 iterations=26 input_migration_ms=3.50405 reader_ms=557.775 compute_ms=594.774 kernel_span_ms=595.585 output_migration_ms=31.289 device_e2e_ms=630.378 setup_inclusive_ms=646.496 host_dynamic_preparation_ms=1.0543 dynamic_device_e2e_ms=630.594 dynamic_kernel_ms=595.718 dynamic_setup_inclusive_ms=647.887 timing_scope=maintenance_plus_iterative_algorithm_excludes_static_graph_setup

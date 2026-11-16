@@ -1,0 +1,17 @@
+group,absolute_threshold,dataset,status,origin,detail
+high,1e-7,AU,PASS,retained_exact,activity counts match
+high,1e-7,SU,PASS,retained_exact,activity counts match
+high,1e-7,WK,PASS,new,activity counts match
+high,1e-7,SO,PASS,new,activity counts match
+high,1e-7,PK,PASS,new,activity counts match
+high,1e-7,LJ,PASS,new,activity counts match
+high,1e-7,LJ08,PASS,new,activity counts match
+high,1e-7,R19,PASS,retained_exact,activity counts match
+low,3e-9,AU,PASS,new,activity counts match
+low,3e-9,SU,PASS,new,activity counts match
+low,3e-9,WK,PASS,new,activity counts match
+low,3e-9,SO,PASS,retained_exact,activity counts match
+low,3e-9,PK,PASS,new,activity counts match
+low,3e-9,LJ,PASS,new,activity counts match
+low,3e-9,LJ08,PASS,new,activity counts match
+low,3e-9,R19,PASS,new,activity counts match

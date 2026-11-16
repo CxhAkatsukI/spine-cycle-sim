@@ -1,5 +1,9 @@
 # Selected Evaluation Delivery
 
+**Fig. 7 ResPR, two fixed thresholds:** [paired FPGA data and logs](fig7_respr_fixed_threshold_20261116/README.md)
+for `1e-7` and `3e-9`, each applied uniformly to the original eight graphs.
+This supplement leaves the selected Fig. 7 CSV and plots unchanged.
+
 **November 16 FPGA supplement:** [Fig. 7 ResPR with nonzero propagation](fig7_respr_nonzero_20261116/README.md)
 provides all eight paired FPGA results, thresholds, round counts, and logs.
 The selected Fig. 7 CSV, archived plots and paper are unchanged.
